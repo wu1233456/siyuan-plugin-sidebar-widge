@@ -127,236 +127,208 @@ export default class PluginSample extends Plugin {
             },
             type: DOCK_TYPE,
             init: (dock) => {
+                // 添加样式
                 const style = document.createElement('style');
                 style.textContent = `
-                    .pomodoro-container { display: flex; flex-direction: column; align-items: center; height: 100%; padding: 20px; }
-                    .timer-display { font-size: 48px; font-weight: bold; margin: 20px 0; position: relative; }
-                    .flip-clock { display: flex; gap: 10px; }
-                    .flip-unit { 
-                        position: relative; 
-                        width: 60px; 
-                        height: 80px;
-                        background: var(--b3-theme-surface);
-                        border-radius: 8px;
-                        perspective: 400px;
-                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-                        border: 1px solid var(--b3-border-color);
-                    }
-                    
-                    .flip-card {
-                        position: relative;
-                        width: 100%;
-                        height: 100%;
-                        text-align: center;
-                        font-size: 48px;
-                        line-height: 80px;
-                        font-weight: bold;
+                    :root {
+                        --body-bg: #333;
+                        --font-size: min(16vw, 4rem);
+                        --center-border: 0.2vw solid #000;
+                        --col-width: min(16vw, 4rem);
+                        --col-height: calc(var(--col-width) * 1.4);
+                        --col-color: #ddd;
+                        --col-bg: #1a1a1a;
                     }
 
-                    .flip-card::before,
-                    .flip-card::after {
-                        content: attr(data-number);
+                    .time {
+                        position: relative;
+                        display: flex;
+                        flex-wrap: wrap;
+                        justify-content: center;
+                        align-items: center;
+                        gap: 0.5rem 0.3rem;
+                        font-family: sans-serif;
+                        font-weight: 700;
+                        overflow: hidden;
+                        padding: 10px;
+                    }
+
+                    .time-group {
+                        display: flex;
+                        gap: 0.3rem;
+                        margin: 0 0.5rem;
+                    }
+
+                    .col {
+                        width: var(--col-width);
+                        height: var(--col-height);
+                        perspective: var(--col-height);
+                    }
+
+                    .curr,
+                    .next {
+                        position: relative;
+                        width: var(--col-width);
+                        height: calc(var(--col-height) / 2);
+                        font-size: var(--font-size);
+                        background: var(--col-bg);
+                        border-radius: 0.3rem;
+                        color: var(--col-color);
+                        overflow: hidden;
+                        box-sizing: border-box;
+                    }
+
+                    .flip .curr::before,
+                    .flip .next::before,
+                    .col > .curr::before,
+                    .col > .next::before {
                         position: absolute;
+                        content: attr(data-t);
+                        line-height: var(--col-height);
+                        text-align: center;
+                        height: var(--col-height);
                         left: 0;
                         right: 0;
-                        width: 100%;
-                        overflow: hidden;
-                        background: var(--b3-theme-surface);
-                        color: var(--b3-theme-on-background);
-                        backface-visibility: hidden;
-                        border-left: 1px solid var(--b3-border-color);
-                        border-right: 1px solid var(--b3-border-color);
                     }
 
-                    .flip-card::before {
+                    .flip .curr::before,
+                    .col > .next::before {
                         top: 0;
-                        bottom: 50%;
-                        border-top-left-radius: 8px;
-                        border-top-right-radius: 8px;
-                        border-top: 1px solid var(--b3-border-color);
-                        border-bottom: 1px solid rgba(0,0,0,0.1);
-                        line-height: 80px;
-                        background-image: linear-gradient(to bottom, 
-                            var(--b3-theme-surface) 0%, 
-                            var(--b3-theme-surface) 50%,
-                            var(--b3-theme-background) 51%, 
-                            var(--b3-theme-background) 100%
-                        );
-                        transform-origin: center bottom;
-                        backface-visibility: hidden;
                     }
 
-                    .flip-card::after {
-                        top: 50%;
-                        height: 50%;
-                        border-bottom-left-radius: 8px;
-                        border-bottom-right-radius: 8px;
-                        border-bottom: 1px solid var(--b3-border-color);
-                        transform-origin: center top;
-                        line-height: 0;
-                        background-image: linear-gradient(to bottom,
-                            var(--b3-theme-background) 0%,
-                            var(--b3-theme-background) 49%,
-                            var(--b3-theme-surface) 50%,
-                            var(--b3-theme-surface) 100%
-                        );
+                    .flip .next::before,
+                    .col > .curr::before {
+                        bottom: 0;
+                    }
+
+                    .flip .curr,
+                    .col > .next {
+                        border-bottom: var(--center-border);
+                    }
+
+                    .flip .next,
+                    .col > .curr {
+                        border-top: var(--center-border);
+                    }
+
+                    .flip .next {
                         transform: rotateX(-180deg);
                         backface-visibility: hidden;
                     }
 
-                    .flip-card.flipped::before {
-                        animation: frontFlipDown 0.6s ease-in-out forwards;
-                        box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.3);
+                    .flip .curr {
+                        position: absolute;
+                        top: 0;
+                        backface-visibility: hidden;
                     }
 
-                    .flip-card.flipped::after {
-                        animation: backFlipDown 0.6s ease-in-out forwards;
-                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+                    .flip {
+                        position: absolute;
+                        width: var(--col-width);
+                        height: var(--col-height);
+                        z-index: 1;
+                        transform-style: preserve-3d;
+                        transition: transform 0s;
+                        transform: rotateX(0);
                     }
 
-                    @keyframes frontFlipDown {
-                        0% {
-                            transform: rotateX(0);
-                            z-index: 3;
-                        }
-                        100% {
-                            transform: rotateX(-180deg);
-                            z-index: 1;
-                        }
+                    .flip.active {
+                        transition: all 0.5s ease-in-out;
+                        transform: rotateX(-180deg);
                     }
-
-                    @keyframes backFlipDown {
-                        0% {
-                            transform: rotateX(-180deg);
-                            z-index: 1;
-                        }
-                        100% {
-                            transform: rotateX(0);
-                            z-index: 3;
-                        }
-                    }
-
-                    .progress-bar { width: 80%; height: 4px; background: var(--b3-theme-surface); border-radius: 2px; margin: 20px 0; }
-                    .progress-bar-fill { height: 100%; background: var(--b3-theme-primary); width: 0%; transition: width 1s linear; }
-                    .controls { display: flex; gap: 20px; margin-top: 20px; }
-                    .control-btn { 
-                        background: none; 
-                        border: 1px solid var(--b3-border-color); 
-                        color: var(--b3-theme-on-background); 
-                        padding: 10px 20px; 
-                        border-radius: 4px; 
-                        cursor: pointer; 
-                    }
-                    .control-btn:hover { background: var(--b3-theme-surface); }
                 `;
-                document.head.appendChild(style);
+                dock.element.appendChild(style);
 
-                dock.element.innerHTML = `
-                    <div class="pomodoro-container">
-                        <div class="timer-display">
-                            <div class="flip-clock">
-                                <div class="flip-unit">
-                                    <div class="flip-card" data-number="2"></div>
-                                </div>
-                                <div class="flip-unit">
-                                    <div class="flip-card" data-number="5"></div>
-                                </div>
-                                <div style="font-size: 48px; margin: 0 5px;">:</div>
-                                <div class="flip-unit">
-                                    <div class="flip-card" data-number="0"></div>
-                                </div>
-                                <div class="flip-unit">
-                                    <div class="flip-card" data-number="0"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="progress-bar"><div class="progress-bar-fill"></div></div>
-                        <div class="controls">
-                            <button class="control-btn" id="startBtn">开始</button>
-                            <button class="control-btn" id="stopBtn">终止</button>
-                        </div>
-                    </div>
-                `;
+                // 创建时钟容器
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'time';
+                timeDiv.id = 'time';
 
-                let duration = 25 * 60;
-                let timeLeft = duration;
-                let isRunning = false;
-                let timer = null;
-                const elements = {
-                    clock: {
-                        minutesTens: dock.element.querySelector('.flip-unit:nth-child(1) .flip-card'),
-                        minutesOnes: dock.element.querySelector('.flip-unit:nth-child(2) .flip-card'),
-                        secondsTens: dock.element.querySelector('.flip-unit:nth-child(4) .flip-card'),
-                        secondsOnes: dock.element.querySelector('.flip-unit:nth-child(5) .flip-card')
-                    },
-                    progress: dock.element.querySelector('.progress-bar-fill'),
-                    startBtn: dock.element.querySelector('#startBtn'),
-                    stopBtn: dock.element.querySelector('#stopBtn')
-                };
+                // 创建时分秒分组
+                const hourGroup = document.createElement('div');
+                hourGroup.className = 'time-group';
+                const minuteGroup = document.createElement('div');
+                minuteGroup.className = 'time-group';
+                const secondGroup = document.createElement('div');
+                secondGroup.className = 'time-group';
 
-                const updateDisplay = () => {
-                    const minutes = Math.floor(timeLeft / 60);
-                    const seconds = timeLeft % 60;
-                    
-                    const minutesTens = Math.floor(minutes / 10);
-                    const minutesOnes = minutes % 10;
-                    const secondsTens = Math.floor(seconds / 10);
-                    const secondsOnes = seconds % 10;
+                timeDiv.append(hourGroup, minuteGroup, secondGroup);
+                dock.element.appendChild(timeDiv);
 
-                    const updateFlipCard = (element: Element, newValue: number) => {
-                        const currentValue = parseInt(element.getAttribute('data-number') || '0');
-                        if (newValue !== currentValue) {
-                            // 先移除之前的动画类
-                            element.classList.remove('flipped');
-                            
-                            // 强制重排，确保移除类生效
-                            void (element as HTMLElement).offsetWidth;
-                            
-                            // 设置新值并添加动画类
-                            element.setAttribute('data-number', newValue.toString());
-                            element.classList.add('flipped');
-                        }
+                // 时钟逻辑
+                const colElms = [];
+
+                function getTimeStr(date = new Date()) {
+                    return [date.getHours(), date.getMinutes(), date.getSeconds()]
+                        .map((item) => item.toString().padStart(2, "0"))
+                        .join("");
+                }
+
+                function createCol(parent: HTMLElement) {
+                    const createEl = (cls) => {
+                        const div = document.createElement("div");
+                        div.classList.add(cls);
+                        return div;
                     };
+                    const [col, flip, flipNext, flipCurr, next, curr] = ["col", "flip", "next", "curr", "next", "curr"].map(
+                        (cls) => createEl(cls)
+                    );
+                    flip.append(flipNext, flipCurr);
+                    col.append(flip, next, curr);
+                    parent.append(col);
+                    return {
+                        toggleActive: () => flip.classList.toggle("active"),
+                        getCurr: () => curr.dataset.t,
+                        setCurr: (t) => [flipCurr, curr].forEach((el) => (el.dataset.t = t)),
+                        setNext: (t) => [flipNext, next].forEach((el) => (el.dataset.t = t)),
+                    };
+                }
 
-                    updateFlipCard(elements.clock.minutesTens, minutesTens);
-                    updateFlipCard(elements.clock.minutesOnes, minutesOnes);
-                    updateFlipCard(elements.clock.secondsTens, secondsTens);
-                    updateFlipCard(elements.clock.secondsOnes, secondsOnes);
+                // 创建时分秒的数字
+                for (let i = 0; i < 2; i++) {
+                    colElms.push(createCol(hourGroup));
+                }
+                for (let i = 2; i < 4; i++) {
+                    colElms.push(createCol(minuteGroup));
+                }
+                for (let i = 4; i < 6; i++) {
+                    colElms.push(createCol(secondGroup));
+                }
 
-                    (elements.progress as HTMLElement).style.width = `${((duration - timeLeft) / duration) * 100}%`;
-                };
+                const timeStr = getTimeStr();
+                colElms.forEach(({ setCurr }, i) => {
+                    setCurr(timeStr[i]);
+                });
 
-                elements.startBtn.addEventListener('click', () => {
-                    if (!isRunning) {
-                        isRunning = true;
-                        elements.startBtn.textContent = '暂停';
-                        timer = setInterval(() => {
-                            if (timeLeft > 0) {
-                                timeLeft--;
-                                updateDisplay();
-                            } else {
-                                clearInterval(timer);
-                                isRunning = false;
-                                elements.startBtn.textContent = '开始';
-                                new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IB').play();
-                            }
-                        }, 1000);
-                    } else {
-                        clearInterval(timer);
-                        isRunning = false;
-                        elements.startBtn.textContent = '继续';
+                let lastSec = new Date().getSeconds();
+                function updateTime() {
+                    let s = new Date().getSeconds();
+                    if (s === lastSec) {
+                        return;
                     }
-                });
+                    lastSec = s;
+                    const currStr = getTimeStr();
+                    colElms.forEach(({ toggleActive, getCurr, setCurr, setNext }, i) => {
+                        var currTxt = getCurr();
+                        setNext(currStr[i]);
+                        if (currTxt !== currStr[i]) {
+                            toggleActive();
+                            setTimeout(() => {
+                                toggleActive();
+                                setCurr(currStr[i]);
+                            }, 500);
+                        }
+                    });
+                }
 
-                elements.stopBtn.addEventListener('click', () => {
-                    clearInterval(timer);
-                    isRunning = false;
-                    timeLeft = duration;
-                    elements.startBtn.textContent = '开始';
-                    updateDisplay();
-                });
+                function run() {
+                    updateTime();
+                    setTimeout(() => {
+                        run();
+                    }, 1000 / 60);
+                }
 
-                updateDisplay();
+                run();
             }
         });
     }
