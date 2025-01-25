@@ -283,7 +283,7 @@ export default class PluginSample extends Plugin {
                 // 添加必要的变量定义
                 const showSecondsCheckbox = document.createElement('input');
                 showSecondsCheckbox.type = 'checkbox';
-                showSecondsCheckbox.checked = true; // 默认不显示秒
+                showSecondsCheckbox.checked = false; // 默认不显示秒
 
                 const notificationCheckbox = document.createElement('input');
                 notificationCheckbox.type = 'checkbox';
@@ -1034,6 +1034,7 @@ export default class PluginSample extends Plugin {
 
                 timeDiv.append(hourGroup, minuteGroup, secondGroup);
                 hourGroup.style.display = 'flex'; // 默认显示小时
+                secondGroup.style.display = 'none'; // 默认隐藏秒
 
                 // 时钟逻辑
                 const colElms = [];
