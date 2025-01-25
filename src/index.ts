@@ -47,7 +47,7 @@ export default class PluginSample extends Plugin {
     <path d="M6 6h12v12H6z"/>
 </symbol>
 <symbol id="iconEdit" viewBox="0 0 24 24">
-    <path d="M19.045 3.875c-1.23-1.34-2.76-2.01-4.38-1.98-1.62.03-3.12.72-4.44 1.92-5.76 1.2-1.2 2.76-1.8 4.44-1.8 1.62.03 3.15.72 4.5 1.92 5.7 1.2 1.2 2.76 1.8 4.44 1.8 1.62-.03 3.15-.72 4.5-1.92 5.7-1.2 1.2-2.76 1.8-4.44 1.8zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6-3.6zM3.48 21c-.48.48-.48 1.2 0 1.68l.96.96c.48.48 1.2.48 1.68 0l.96-.96c.48-.48.48-1.2 0-1.68l-.96-.96zM12 12c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6-3.6z"/>
+    <path d="M19.045 3.875c-1.23-1.34-2.76-2.01-4.38-1.98-1.62.03-3.12.72-4.44 1.92-5.76 1.2-1.2 2.76-1.8 4.44-1.8 1.62.03 3.15.72 4.5 1.92 5.7 1.2 1.2 2.76 1.8 4.44 1.8zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6-3.6zM3.48 21c-.48.48-.48 1.2 0 1.68l.96.96c.48.48 1.2.48 1.68 0l.96-.96c.48-.48.48-1.2 0-1.68l-.96-.96zM12 12c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6-3.6z"/>
 </symbol>`);
 
 
@@ -83,14 +83,17 @@ export default class PluginSample extends Plugin {
                         gap: 0.5rem 0.3rem;
                         font-family: sans-serif;
                         font-weight: 700;
-                        overflow: hidden;
+                        overflow: visible;
                         color: var(--b3-theme-on-background);
+                        padding: 8px 0;
                     }
 
                     .time-group {
                         display: flex;
                         gap: 0.3rem;
                         margin: 0 0.2rem;
+                        position: relative;
+                        z-index: 2;
                     }
 
                     .col {
@@ -100,6 +103,8 @@ export default class PluginSample extends Plugin {
                         background: var(--b3-theme-background);
                         border-radius: 8px;
                         overflow: hidden;
+                        position: relative;
+                        z-index: 2;
                     }
 
                     .curr,
@@ -335,6 +340,52 @@ export default class PluginSample extends Plugin {
                         icon: "iconEdit",
                         label: "时钟样式设置",
                         click: () => {
+                            // 获取当前的样式值
+                            let currentCardColor = '#1e1e1e';
+                            let currentNumberColor = '#ffffff';
+                            let currentShowShadow = false;
+
+                            // 尝试从现有的自定义样式中获取当前值
+                            const customStyle = document.getElementById('clock-custom-style');
+                            if (customStyle) {
+                                const styleContent = customStyle.textContent;
+                                // 提取卡片颜色
+                                const cardColorMatch = styleContent.match(/background-color: (#[a-fA-F0-9]{6})/);
+                                if (cardColorMatch) {
+                                    currentCardColor = cardColorMatch[1];
+                                }
+                                // 提取数字颜色 - 从伪元素的颜色中获取
+                                const numberColorMatch = styleContent.match(/::before.*?color: (#[a-fA-F0-9]{6})/s);
+                                if (numberColorMatch) {
+                                    currentNumberColor = numberColorMatch[1];
+                                }
+                                // 检查是否有阴影
+                                currentShowShadow = styleContent.includes('box-shadow: 0 4px 8px');
+                            } else {
+                                // 如果没有自定义样式，从DOM中获取当前值
+                                const col = document.querySelector('.col') as HTMLElement;
+                                if (col) {
+                                    const computedCol = getComputedStyle(col);
+                                    // 将rgb颜色转换为hex
+                                    const rgbToHex = (rgb) => {
+                                        const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                                        if (match) {
+                                            const hex = (x) => ("0" + parseInt(x).toString(16)).slice(-2);
+                                            return "#" + hex(match[1]) + hex(match[2]) + hex(match[3]);
+                                        }
+                                        return rgb;
+                                    };
+                                    currentCardColor = rgbToHex(computedCol.backgroundColor);
+                                    currentShowShadow = computedCol.boxShadow !== 'none';
+
+                                    // 获取伪元素的颜色
+                                    const beforeStyle = window.getComputedStyle(col.querySelector('.curr'), ':before');
+                                    if (beforeStyle) {
+                                        currentNumberColor = rgbToHex(beforeStyle.color);
+                                    }
+                                }
+                            }
+
                             const dialog = new Dialog({
                                 title: "时钟样式设置",
                                 content: `
@@ -343,14 +394,18 @@ export default class PluginSample extends Plugin {
                                             <div class="fn__flex" style="align-items: center; margin-bottom: 10px;">
                                                 <label class="fn__flex" style="width: 80px;">卡片颜色</label>
                                                 <input type="color" id="card-color" class="b3-text-field" 
-                                                    value="#1e1e1e"
+                                                    value="${currentCardColor}"
                                                     style="width: 80px; height: 32px; padding: 2px;">
                                             </div>
                                             <div class="fn__flex" style="align-items: center;">
                                                 <label class="fn__flex" style="width: 80px;">数字颜色</label>
                                                 <input type="color" id="number-color" class="b3-text-field"
-                                                    value="#ffffff"
+                                                    value="${currentNumberColor}"
                                                     style="width: 80px; height: 32px; padding: 2px;">
+                                            </div>
+                                            <div class="fn__flex" style="align-items: center; margin-top: 10px;">
+                                                <label class="fn__flex" style="width: 80px;">显示阴影</label>
+                                                <input class="b3-switch fn__flex-center" type="checkbox" id="show-shadow" ${currentShowShadow ? 'checked' : ''}>
                                             </div>
                                         </div>
                                     </div>
@@ -361,12 +416,14 @@ export default class PluginSample extends Plugin {
                             const saveSettings = () => {
                                 const cardColor = (dialog.element.querySelector('#card-color') as HTMLInputElement).value;
                                 const numberColor = (dialog.element.querySelector('#number-color') as HTMLInputElement).value;
+                                const showShadow = (dialog.element.querySelector('#show-shadow') as HTMLInputElement).checked;
 
                                 // 更新样式
                                 const style = document.createElement('style');
                                 style.textContent = `
                                     .col {
                                         background-color: ${cardColor} !important;
+                                        box-shadow: ${showShadow ? '0 4px 8px rgba(0, 0, 0, 0.2)' : 'none'} !important;
                                     }
                                     .curr, .next {
                                         color: ${numberColor} !important;
@@ -499,7 +556,7 @@ export default class PluginSample extends Plugin {
                 const timeDiv = document.createElement('div');
                 timeDiv.className = 'time';
                 timeDiv.id = 'time';
-                timeDiv.style.marginTop = '2px';
+                timeDiv.style.cssText = 'margin-top: 2px; position: relative; z-index: 2;';
 
                 // 创建设置区域
                 const settingArea = document.createElement('div');
@@ -674,7 +731,7 @@ export default class PluginSample extends Plugin {
                 controlArea.style.cssText = 'display: flex; justify-content: center; gap: 1rem;';
                 
                 const startButton = document.createElement('button');
-                startButton.innerHTML = '<svg class="icon" style="width: 12px; height: 12px; fill: var(--b3-theme-primary);"><use xlink:href="#iconPlay"></use></svg>';
+                startButton.innerHTML = '<svg class="icon" style="width: 12px; height: 12px; fill: var(--b3-theme-primary);"><use xlink:href="#iconTime"></use></svg>';
                 startButton.style.cssText = `
                     position: absolute;
                     top: 5px;
@@ -952,6 +1009,18 @@ export default class PluginSample extends Plugin {
                     const titleElement = dock.element.querySelector('.dock__title');
                     if (titleElement) {
                         titleElement.textContent = '番茄钟';
+                    }
+                });
+
+                // 添加暂停按钮点击事件
+                pauseButton.addEventListener('click', () => {
+                    if (!isCountingDown) return;
+                    
+                    isPaused = !isPaused;
+                    if (isPaused) {
+                        pauseButton.innerHTML = '<svg class="icon" style="width: 12px; height: 12px; fill: var(--b3-theme-primary);"><use xlink:href="#iconPlay"></use></svg>';
+                    } else {
+                        pauseButton.innerHTML = '<svg class="icon" style="width: 12px; height: 12px; fill: var(--b3-theme-primary);"><use xlink:href="#iconPause"></use></svg>';
                     }
                 });
 
