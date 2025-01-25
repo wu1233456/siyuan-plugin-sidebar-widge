@@ -47,8 +47,8 @@ export default class PluginSample extends Plugin {
         this.addIcons(`<symbol id="iconFace" viewBox="0 0 32 32">
 <path d="M13.667 17.333c0 0.92-0.747 1.667-1.667 1.667s-1.667-0.747-1.667-1.667 0.747-1.667 1.667-1.667 1.667 0.747 1.667 1.667zM20 15.667c-0.92 0-1.667 0.747-1.667 1.667s0.747 1.667 1.667 1.667 1.667-0.747 1.667-1.667-0.747-1.667-1.667-1.667zM29.333 16c0 7.36-5.973 13.333-13.333 13.333s-13.333-5.973-13.333-13.333 5.973-13.333 13.333-13.333 13.333 5.973 13.333 13.333zM14.213 5.493c1.867 3.093 5.253 5.173 9.12 5.173 0.613 0 1.213-0.067 1.787-0.16-1.867-3.093-5.253-5.173-9.12-5.173-0.613 0-1.213 0.067-1.787 0.16zM5.893 12.627c2.28-1.293 4.040-3.4 4.88-5.92-2.28 1.293-4.040 3.4-4.88 5.92zM26.667 16c0-1.040-0.16-2.040-0.44-2.987-0.933 0.2-1.893 0.32-2.893 0.32-4.173 0-7.893-1.92-10.347-4.92-1.4 3.413-4.187 6.093-7.653 7.4 0.013 0.053 0 0.12 0 0.187 0 5.88 4.787 10.667 10.667 10.667s10.667-4.787 10.667-10.667z"></path>
 </symbol>
-<symbol id="iconSaving" viewBox="0 0 32 32">
-<path d="M20 13.333c0-0.733 0.6-1.333 1.333-1.333s1.333 0.6 1.333 1.333c0 0.733-0.6 1.333-1.333 1.333s-1.333-0.6-1.333-1.333zM10.667 12h6.667v-2.667h-6.667v2.667zM29.333 10v9.293l-3.76 1.253-2.24 7.453h-7.333v-2.667h-2.667v2.667h-7.333c0 0-3.333-11.28-3.333-15.333s3.28-7.333 7.333-7.333h6.667c1.213-1.613 3.147-2.667 5.333-2.667 1.107 0 2 0.893 2 2 0 0.28-0.053 0.533-0.16 0.773-0.187 0.453-0.347 0.973-0.427 1.533l3.027 3.027h2.893zM26.667 12.667h-1.333l-4.667-4.667c0-0.867 0.12-1.72 0.347-2.547-1.293 0.333-2.347 1.293-2.787 2.547h-8.227c-2.573 0-4.667 2.093-4.667 4.667 0 2.507 1.627 8.867 2.68 12.667h2.653v-2.667h8v2.667h2.68l2.067-6.867 3.253-1.093v-4.707z"></path>
+<symbol id="iconTime" viewBox="0 0 1024 1024">
+<path d="M963.05566 345.393457c-34.433245-59.444739-83.5084-112.04244-142.458001-152.926613 3.805482-11.402299 2.23519-23.908046-4.272326-34.008842a39.5855 39.5855 0 0 0-29.198939-17.938108L617.888552 123.076923l-73.365164-105.421751c-7.398762-10.638373-19.55084-16.976127-32.509284-16.976127s-25.110522 6.337754-32.509283 16.976127L406.111363 123.076923 236.887668 140.505747A39.625111 39.625111 0 0 0 207.688729 158.443855a39.676039 39.676039 0 0 0-4.286473 34.008842C77.170603 279.724138 2.716138 415.179487 2.716138 560.311229c-0.04244 62.72679 13.849691 124.689655 40.671972 181.38992 25.916888 55.129973 62.924845 104.587091 110.005305 146.956676 46.769231 42.100796 101.177719 75.119363 161.683466 98.164456a559.214854 559.214854 0 0 0 393.846153 0c60.519894-23.030946 114.928382-56.06366 161.71176-98.164456 47.08046-42.369584 84.088417-91.826702 110.005305-146.956676A423.347834 423.347834 0 0 0 1021.283777 560.311229a429.629001 429.629001 0 0 0-58.228117-214.917772z m-530.786914-145.372237c11.473033-1.188329 21.856764-7.299735 28.44916-16.778072L511.999958 109.609195l51.239611 73.633953c6.592396 9.464191 16.976127 15.589744 28.44916 16.778072l80.580017 8.304156-47.278514 32.679045a39.601061 39.601061 0 0 0-15.971707 41.874447l14.458002 59.784262-97.655172-36.413793a39.633599 39.633599 0 0 0-27.671088 0l-97.655172 36.399646 14.458001-59.784262a39.601061 39.601061 0 0 0-15.971706-41.874447l-47.278515-32.679045 80.565871-8.290009zM817.570249 829.778957a434.642617 434.642617 0 0 1-136.94076 83.013262 480.025464 480.025464 0 0 1-337.457118 0 434.642617 434.642617 0 0 1-136.94076-83.013262C126.132584 757.545535 81.938065 661.842617 81.938065 560.311229c0-125.496021 68.923077-242.758621 184.615385-314.553492l65.018568 44.944297-25.563219 105.81786a39.619452 39.619452 0 0 0 52.34306 46.401415L511.999958 385.669319l153.676392 57.280283c13.72237 5.106985 29.142352 2.23519 40.106101-7.483643a39.58267 39.58267 0 0 0 12.222812-38.917772l-25.605659-105.81786 65.018568-44.93015c2.900088 1.79664 5.78603 3.621574 8.629531 5.488948 53.616269 35.083996 98.022989 81.343943 128.43855 133.842617 31.56145 54.507515 47.533156 113.471264 47.533156 175.221927 0.04244 101.488948-44.152078 197.191866-124.44916 269.425288z m0 0" fill="#3A3A3A"></path>
 </symbol>
 <symbol id="iconSettings" viewBox="0 0 24 24">
     <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
@@ -61,6 +61,9 @@ export default class PluginSample extends Plugin {
 </symbol>
 <symbol id="iconStop" viewBox="0 0 24 24">
     <path d="M6 6h12v12H6z"/>
+</symbol>
+<symbol id="iconEdit" viewBox="0 0 24 24">
+    <path d="M19.045 3.875c-1.23-1.34-2.76-2.01-4.38-1.98-1.62.03-3.12.72-4.44 1.92-5.76 1.2-1.2 2.76-1.8 4.44-1.8 1.62.03 3.15.72 4.5 1.92 5.7 1.2 1.2 2.76 1.8 4.44 1.8 1.62-.03 3.15-.72 4.5-1.92 5.7-1.2 1.2-2.76 1.8-4.44 1.8zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6-3.6zM3.48 21c-.48.48-.48 1.2 0 1.68l.96.96c.48.48 1.2.48 1.68 0l.96-.96c.48-.48.48-1.2 0-1.68l-.96-.96zM12 12c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6-3.6z"/>
 </symbol>`);
 
 
@@ -167,7 +170,7 @@ export default class PluginSample extends Plugin {
                     }
 
                     .flip .curr {
-                        position: absolute;
+                        position: absolute; 
                         top: 0;
                         backface-visibility: hidden;
                     }
@@ -191,11 +194,24 @@ export default class PluginSample extends Plugin {
 
                 // 创建时钟容器和控制区域
                 const container = document.createElement('div');
-                container.style.cssText = 'display: flex; flex-direction: column; gap: 1rem; padding: 5px; padding-top: 30px; position: relative;';
+                container.style.cssText = 'display: flex; flex-direction: column; gap: 1rem; padding: 5px; padding-top: 30px; padding-bottom: 40px; position: relative;';
 
                 // 创建进度条容器
                 const progressContainer = document.createElement('div');
-                progressContainer.style.cssText = 'position: absolute; bottom: 0; left: 5px; right: 5px; height: 6px; background: var(--b3-theme-surface-lighter); overflow: hidden; opacity: 0; transition: opacity 0.3s; border-radius: 3px; margin: 5px;';
+                progressContainer.style.cssText = `
+                    position: absolute;
+                    bottom: 30px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 80%;
+                    height: 6px;
+                    background: var(--b3-theme-surface-lighter);
+                    overflow: hidden;
+                    opacity: 0;
+                    transition: opacity 0.3s;
+                    border-radius: 3px;
+                    margin: 5px;
+                `;
                 
                 const progressBar = document.createElement('div');
                 progressBar.style.cssText = 'height: 100%; width: 0%; background: var(--b3-theme-primary); transition: width 0.5s linear; border-radius: 3px;';
@@ -275,33 +291,14 @@ export default class PluginSample extends Plugin {
                     settingsButton.style.background = 'transparent';
                 });
 
-                // 添加设置菜单
-                const settingsMenu = document.createElement('div');
-                settingsMenu.style.cssText = `
-                    position: absolute;
-                    top: 35px;
-                    left: 35px;
-                    background: var(--b3-theme-surface);
-                    border-radius: 4px;
-                    padding: 8px;
-                    display: none;
-                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                    z-index: 4;
-                `;
-
-                const showSecondsOption = document.createElement('div');
-                showSecondsOption.style.cssText = 'display: flex; align-items: center; gap: 8px; cursor: pointer;';
-
+                // 添加必要的变量定义
                 const showSecondsCheckbox = document.createElement('input');
                 showSecondsCheckbox.type = 'checkbox';
                 showSecondsCheckbox.checked = true; // 默认显示秒
 
-                const showSecondsLabel = document.createElement('span');
-                showSecondsLabel.textContent = '显示秒';
-                showSecondsLabel.style.color = 'var(--b3-theme-on-surface)';
-
-                showSecondsOption.append(showSecondsCheckbox, showSecondsLabel);
-                settingsMenu.appendChild(showSecondsOption);
+                const notificationCheckbox = document.createElement('input');
+                notificationCheckbox.type = 'checkbox';
+                notificationCheckbox.checked = true; // 默认开启通知
 
                 // 在container的mouseenter和mouseleave事件中添加settingsButton的显示控制
                 container.addEventListener('mouseenter', () => {
@@ -318,29 +315,115 @@ export default class PluginSample extends Plugin {
                     startButton.style.opacity = '0';
                     buttonContainer.style.opacity = '0';
                     buttonContainer.style.pointerEvents = 'none';
-                    settingsMenu.style.display = 'none';
                 });
 
                 // 添加设置按钮点击事件
                 settingsButton.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    settingsMenu.style.display = settingsMenu.style.display === 'none' ? 'block' : 'none';
-                });
+                    const rect = settingsButton.getBoundingClientRect();
+                    const menu = new Menu("settingsMenu");
 
-                // 修改秒显示控制的逻辑
-                showSecondsCheckbox.addEventListener('change', () => {
-                    if (!isCountingDown) {
-                        secondGroup.style.display = showSecondsCheckbox.checked ? 'flex' : 'none';
-                    }
-                });
+                    // 添加显示秒选项
+                    menu.addItem({
+                        icon: showSecondsCheckbox.checked ? "iconSelect" : "",
+                        label: "显示秒",
+                        click: () => {
+                            showSecondsCheckbox.checked = !showSecondsCheckbox.checked;
+                            if (!isCountingDown) {
+                                secondGroup.style.display = showSecondsCheckbox.checked ? 'flex' : 'none';
+                            }
+                        }
+                    });
 
-                // 点击其他区域关闭设置菜单
-                document.addEventListener('click', () => {
-                    settingsMenu.style.display = 'none';
-                });
+                    // 添加通知开关选项 
+                    menu.addItem({
+                        icon: notificationCheckbox.checked ? "iconSelect" : "",
+                        label: "消息通知",
+                        click: () => {
+                            notificationCheckbox.checked = !notificationCheckbox.checked;
+                        }
+                    });
 
-                settingsMenu.addEventListener('click', (e) => {
-                    e.stopPropagation();
+                    menu.addSeparator();
+
+                    // 添加滚动文字设置选项
+                    menu.addItem({
+                        icon: "iconEdit",
+                        label: "滚动文字设置",
+                        click: () => {
+                            const dialog = new Dialog({
+                                title: "滚动文字设置",
+                                content: `
+                                    <div class="b3-dialog__content" style="display: flex; flex-direction: column; gap: 1rem; padding: 20px;">
+                                        <div class="fn__flex-column">
+                                            <label class="fn__flex" style="margin-bottom: 4px;">文字内容</label>
+                                            <textarea class="b3-text-field fn__block" id="scrolling-text-content" rows="3" style="resize: vertical;">${scrollingText.textContent || ''}</textarea>
+                                        </div>
+                                        <div class="fn__flex-column" style="gap: 0.5rem;">
+                                            <div class="fn__flex" style="align-items: center;">
+                                                <label class="fn__flex" style="width: 80px;">字体大小</label>
+                                                <input type="number" min="8" max="24" value="${parseInt(scrollingText.style.fontSize) || 12}" 
+                                                    class="b3-text-field" id="scrolling-text-size" style="width: 80px;">
+                                                <span style="margin-left: 4px;">px</span>
+                                            </div>
+                                            <div class="fn__flex" style="align-items: center;">
+                                                <label class="fn__flex" style="width: 80px;">字体颜色</label>
+                                                <input type="color" value="${scrollingText.style.color || 'var(--b3-theme-primary)'}" 
+                                                    class="b3-text-field" id="scrolling-text-color" style="width: 80px; height: 32px; padding: 2px;">
+                                            </div>
+                                        </div>
+                                        <div class="fn__flex" style="align-items: center;">
+                                            <label class="fn__flex" style="margin-right: 8px;">
+                                                <input type="checkbox" class="b3-switch fn__flex-center" id="scrolling-text-bold" 
+                                                    ${scrollingText.style.fontWeight === 'bold' ? 'checked' : ''}>
+                                                <span style="margin-left: 8px;">文字加粗</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                `,
+                                width: "520px",
+                            });
+
+                            const saveSettings = () => {
+                                const content = (dialog.element.querySelector('#scrolling-text-content') as HTMLTextAreaElement).value;
+                                const fontSize = (dialog.element.querySelector('#scrolling-text-size') as HTMLInputElement).value;
+                                const color = (dialog.element.querySelector('#scrolling-text-color') as HTMLInputElement).value;
+                                const isBold = (dialog.element.querySelector('#scrolling-text-bold') as HTMLInputElement).checked;
+
+                                scrollingText.textContent = content;
+                                scrollingText.style.fontSize = `${fontSize}px`;
+                                scrollingText.style.color = color;
+                                scrollingText.style.fontWeight = isBold ? 'bold' : 'normal';
+
+                                // 根据内容是否为空来显示或隐藏滚动文字容器
+                                scrollingTextContainer.style.display = content.trim() ? 'flex' : 'none';
+
+                                dialog.destroy();
+                            };
+
+                            // 添加确定和取消按钮
+                            const btns = document.createElement("div");
+                            btns.className = "fn__flex b3-dialog__action";
+                            btns.innerHTML = `
+                                <button class="b3-button b3-button--cancel">取消</button>
+                                <div class="fn__space"></div>
+                                <button class="b3-button b3-button--text">确定</button>
+                            `;
+                            dialog.element.querySelector('.b3-dialog__content').appendChild(btns);
+
+                            // 绑定按钮事件
+                            btns.querySelector('.b3-button--cancel').addEventListener('click', () => {
+                                dialog.destroy();
+                            });
+                            btns.querySelector('.b3-button--text').addEventListener('click', saveSettings);
+                        }
+                    });
+
+                    menu.open({
+                        x: rect.right,
+                        y: rect.bottom,
+                        isLeft: true,
+                    });
                 });
 
                 // 创建时钟容器
@@ -473,11 +556,6 @@ export default class PluginSample extends Plugin {
                 
                 const notificationSwitch = document.createElement('label');
                 notificationSwitch.style.cssText = 'position: relative; display: inline-block; width: 40px; height: 20px;';
-                
-                const notificationCheckbox = document.createElement('input');
-                notificationCheckbox.type = 'checkbox';
-                notificationCheckbox.style.cssText = 'opacity: 0; width: 0; height: 0;';
-                notificationCheckbox.checked = true;
                 
                 const notificationSlider = document.createElement('span');
                 notificationSlider.style.cssText = `
@@ -637,14 +715,14 @@ export default class PluginSample extends Plugin {
                             newBreakButtonsContainer.appendChild(button);
                         });
 
-                        // 添加自定义输入框
+                        // 修改休息时间自定义输入框相关的代码
                         const newBreakCustomInput = document.createElement('input');
                         newBreakCustomInput.type = 'number';
                         newBreakCustomInput.min = '1';
                         newBreakCustomInput.placeholder = '自定义';
                         newBreakCustomInput.style.cssText = 'width: 60px; padding: 6px 12px; border-radius: 6px; background: var(--b3-theme-surface); color: var(--b3-theme-on-surface); border: 1px solid var(--b3-theme-surface-lighter); outline: none;';
                         newBreakCustomInput.value = breakCustomInput.value;
-                        
+
                         newBreakCustomInput.addEventListener('input', () => {
                             const value = parseInt(newBreakCustomInput.value);
                             if (value > 0) {
@@ -916,14 +994,57 @@ export default class PluginSample extends Plugin {
                 // 修改添加到容器的顺序，确保设置按钮和菜单在正确的位置
                 container.style.position = 'relative';
 
-                // 添加到主容器
+                // 在添加到主容器之前，创建滚动文字区域
+                const scrollingTextContainer = document.createElement('div');
+                scrollingTextContainer.style.cssText = `
+                    position: absolute;
+                    bottom: 5px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 80%;
+                    overflow: hidden;
+                    height: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                `;
+
+                const scrollingText = document.createElement('div');
+                scrollingText.textContent = '一定要认真搞好论文，再弄其他的，千万不要被其他事情分心';
+                scrollingText.style.cssText = `
+                    color: var(--b3-theme-primary);
+                    font-size: 12px;
+                    font-weight: normal;
+                    white-space: nowrap;
+                    animation: scrollText 10s linear infinite;
+                    opacity: 0.8;
+                `;
+
+                // 修改动画样式
+                style.textContent += `
+                    @keyframes scrollText {
+                        0% {
+                            transform: translateX(100%);
+                        }
+                        100% {
+                            transform: translateX(-100%);
+                        }
+                    }
+                `;
+
+                scrollingTextContainer.appendChild(scrollingText);
+
+                // 初始化时,如果文字内容为空则隐藏滚动文字容器
+                scrollingTextContainer.style.display = scrollingText.textContent.trim() ? 'flex' : 'none';
+
+                // 修改添加到主容器的顺序
                 container.appendChild(timeDiv);
                 container.appendChild(settingArea);
                 container.appendChild(controlArea);
                 container.appendChild(progressContainer);
                 container.appendChild(buttonContainer);
                 container.appendChild(settingsButton);
-                container.appendChild(settingsMenu);
+                container.appendChild(scrollingTextContainer);  // 添加滚动文字容器
                 dock.element.appendChild(container);
 
                 run();

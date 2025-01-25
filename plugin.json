@@ -21,7 +21,7 @@
     "desktop-window"
   ],
   "displayName": {
-    "en_US": "Plugin sample with vite and svelte",
+    "en_US": "tomato-clock",
     "zh_CN": "番茄时钟"
   },
   "description": {
