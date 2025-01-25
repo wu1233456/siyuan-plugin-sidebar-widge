@@ -131,13 +131,10 @@ export default class PluginSample extends Plugin {
                 const style = document.createElement('style');
                 style.textContent = `
                     :root {
-                        --body-bg: #333;
                         --font-size: min(16vw, 4rem);
-                        --center-border: 0.2vw solid #000;
+                        --center-border: 1px solid var(--b3-theme-surface);
                         --col-width: min(16vw, 4rem);
                         --col-height: calc(var(--col-width) * 1.4);
-                        --col-color: #ddd;
-                        --col-bg: #1a1a1a;
                     }
 
                     .time {
@@ -151,6 +148,7 @@ export default class PluginSample extends Plugin {
                         font-weight: 700;
                         overflow: hidden;
                         padding: 10px;
+                        color: var(--b3-theme-on-background);
                     }
 
                     .time-group {
@@ -163,6 +161,9 @@ export default class PluginSample extends Plugin {
                         width: var(--col-width);
                         height: var(--col-height);
                         perspective: var(--col-height);
+                        background: var(--b3-theme-background);
+                        border-radius: 8px;
+                        overflow: hidden;
                     }
 
                     .curr,
@@ -171,9 +172,8 @@ export default class PluginSample extends Plugin {
                         width: var(--col-width);
                         height: calc(var(--col-height) / 2);
                         font-size: var(--font-size);
-                        background: var(--col-bg);
-                        border-radius: 0.3rem;
-                        color: var(--col-color);
+                        background: var(--b3-theme-background);
+                        color: var(--b3-theme-on-background);
                         overflow: hidden;
                         box-sizing: border-box;
                     }
@@ -189,6 +189,7 @@ export default class PluginSample extends Plugin {
                         height: var(--col-height);
                         left: 0;
                         right: 0;
+                        background: var(--b3-theme-background);
                     }
 
                     .flip .curr::before,
@@ -239,10 +240,108 @@ export default class PluginSample extends Plugin {
                 `;
                 dock.element.appendChild(style);
 
+                // 创建时钟容器和控制区域
+                const container = document.createElement('div');
+                container.style.cssText = 'display: flex; flex-direction: column; gap: 1rem; padding: 10px; position: relative;';
+
+                // 创建进度条容器
+                const progressContainer = document.createElement('div');
+                progressContainer.style.cssText = 'position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: var(--b3-theme-surface-lighter); overflow: hidden; opacity: 0; transition: opacity 0.3s;';
+                
+                const progressBar = document.createElement('div');
+                progressBar.style.cssText = 'height: 100%; width: 0%; background: var(--b3-theme-primary); transition: width 0.5s linear;';
+                progressContainer.appendChild(progressBar);
+                
+                // 创建按钮容器，默认隐藏
+                const buttonContainer = document.createElement('div');
+                buttonContainer.style.cssText = 'position: absolute; bottom: 10px; left: 0; right: 0; display: flex; justify-content: center; gap: 1rem; opacity: 0; transition: opacity 0.3s; pointer-events: none;';
+
+                // 创建暂停按钮
+                const pauseButton = document.createElement('button');
+                pauseButton.innerHTML = '<span style="padding: 4px 12px;">暂停</span>';
+                pauseButton.style.cssText = 'background: var(--b3-theme-primary); color: #fff; border: none; border-radius: 20px; cursor: pointer;';
+
+                // 创建终止按钮
+                const stopButton = document.createElement('button');
+                stopButton.innerHTML = '<span style="padding: 4px 12px;">终止</span>';
+                stopButton.style.cssText = 'background: var(--b3-theme-primary); color: #fff; border: none; border-radius: 20px; cursor: pointer;';
+
+                buttonContainer.append(pauseButton, stopButton);
+
+                // 添加鼠标移入移出事件
+                container.addEventListener('mouseenter', () => {
+                    if (isCountingDown) {
+                        buttonContainer.style.opacity = '1';
+                        buttonContainer.style.pointerEvents = 'auto';
+                    }
+                });
+
+                container.addEventListener('mouseleave', () => {
+                    buttonContainer.style.opacity = '0';
+                    buttonContainer.style.pointerEvents = 'none';
+                });
+
                 // 创建时钟容器
                 const timeDiv = document.createElement('div');
                 timeDiv.className = 'time';
                 timeDiv.id = 'time';
+
+                // 创建设置区域
+                const settingArea = document.createElement('div');
+                settingArea.style.cssText = 'display: none; flex-direction: column; gap: 1rem; padding: 10px;';
+                
+                const inputArea = document.createElement('div');
+                inputArea.style.cssText = 'display: flex; gap: 1rem; align-items: center; justify-content: center;';
+                
+                const createTimeInput = (id: string, max: number, defaultValue: string, label: string) => {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.min = '0';
+                    input.max = max.toString();
+                    input.value = defaultValue;
+                    input.id = id;
+                    input.style.cssText = 'width: 60px; padding: 4px; background: var(--b3-theme-background); color: var(--b3-theme-on-background); border: 1px solid var(--b3-theme-surface-lighter); border-radius: 4px;';
+                    
+                    const labelEl = document.createElement('label');
+                    labelEl.textContent = label;
+                    labelEl.style.color = 'var(--b3-theme-on-background)';
+                    
+                    return [input, labelEl];
+                };
+
+                const [hoursInput, hoursLabel] = createTimeInput('hours', 23, '0', '小时');
+                const [minutesInput, minutesLabel] = createTimeInput('minutes', 59, '25', '分钟');
+                const [secondsInput, secondsLabel] = createTimeInput('seconds', 59, '0', '秒');
+
+                inputArea.append(
+                    hoursInput, hoursLabel,
+                    minutesInput, minutesLabel,
+                    secondsInput, secondsLabel
+                );
+
+                const buttonArea = document.createElement('div');
+                buttonArea.style.cssText = 'display: flex; justify-content: center; gap: 1rem; margin-top: 1rem;';
+
+                const confirmButton = document.createElement('button');
+                confirmButton.textContent = '确定';
+                confirmButton.style.cssText = 'padding: 8px 16px; border-radius: 4px; background: var(--b3-theme-background); color: var(--b3-theme-on-background); border: 1px solid var(--b3-theme-surface-lighter);';
+
+                const cancelButton = document.createElement('button');
+                cancelButton.textContent = '取消';
+                cancelButton.style.cssText = 'padding: 8px 16px; border-radius: 4px; background: var(--b3-theme-background); color: var(--b3-theme-on-background); border: 1px solid var(--b3-theme-surface-lighter);';
+
+                buttonArea.append(cancelButton, confirmButton);
+                settingArea.append(inputArea, buttonArea);
+
+                // 创建控制按钮区域
+                const controlArea = document.createElement('div');
+                controlArea.style.cssText = 'display: flex; justify-content: center; gap: 1rem;';
+                
+                const startButton = document.createElement('button');
+                startButton.textContent = '开始番茄钟';
+                startButton.style.cssText = 'padding: 8px 16px; border-radius: 4px; background: var(--b3-theme-background); color: var(--b3-theme-on-background); border: 1px solid var(--b3-theme-surface-lighter);';
+
+                controlArea.appendChild(startButton);
 
                 // 创建时分秒分组
                 const hourGroup = document.createElement('div');
@@ -253,15 +352,33 @@ export default class PluginSample extends Plugin {
                 secondGroup.className = 'time-group';
 
                 timeDiv.append(hourGroup, minuteGroup, secondGroup);
-                dock.element.appendChild(timeDiv);
+                hourGroup.style.display = 'flex'; // 默认显示小时
 
                 // 时钟逻辑
                 const colElms = [];
+                let countdownTime = 0; // 倒计时总秒数
+                let isCountingDown = false;
+                let hasHours = true; // 默认显示小时
 
                 function getTimeStr(date = new Date()) {
-                    return [date.getHours(), date.getMinutes(), date.getSeconds()]
-                        .map((item) => item.toString().padStart(2, "0"))
-                        .join("");
+                    if (!isCountingDown) {
+                        // 非倒计时状态始终显示完整时间
+                        return [date.getHours(), date.getMinutes(), date.getSeconds()]
+                            .map((item) => item.toString().padStart(2, "0"))
+                            .join("");
+                    } else {
+                        const hours = Math.floor(countdownTime / 3600);
+                        const minutes = Math.floor((countdownTime % 3600) / 60);
+                        const seconds = countdownTime % 60;
+                        if (!hasHours) {
+                            return [minutes, seconds]
+                                .map((item) => item.toString().padStart(2, "0"))
+                                .join("");
+                        }
+                        return [hours, minutes, seconds]
+                            .map((item) => item.toString().padStart(2, "0"))
+                            .join("");
+                    }
                 }
 
                 function createCol(parent: HTMLElement) {
@@ -284,31 +401,75 @@ export default class PluginSample extends Plugin {
                     };
                 }
 
+                const hourElms = [];
+                const minSecElms = [];
+
                 // 创建时分秒的数字
                 for (let i = 0; i < 2; i++) {
-                    colElms.push(createCol(hourGroup));
+                    hourElms.push(createCol(hourGroup));
                 }
-                for (let i = 2; i < 4; i++) {
-                    colElms.push(createCol(minuteGroup));
+                for (let i = 0; i < 2; i++) {
+                    minSecElms.push(createCol(minuteGroup));
                 }
-                for (let i = 4; i < 6; i++) {
-                    colElms.push(createCol(secondGroup));
+                for (let i = 0; i < 2; i++) {
+                    minSecElms.push(createCol(secondGroup));
                 }
 
-                const timeStr = getTimeStr();
-                colElms.forEach(({ setCurr }, i) => {
-                    setCurr(timeStr[i]);
-                });
+                function updateDisplay() {
+                    const timeStr = getTimeStr();
+                    if (hasHours) {
+                        [...hourElms, ...minSecElms].forEach(({ setCurr }, i) => {
+                            setCurr(timeStr[i]);
+                        });
+                    } else {
+                        minSecElms.forEach(({ setCurr }, i) => {
+                            setCurr(timeStr[i]);
+                        });
+                    }
+                }
+
+                updateDisplay();
 
                 let lastSec = new Date().getSeconds();
-                function updateTime() {
-                    let s = new Date().getSeconds();
-                    if (s === lastSec) {
-                        return;
+                let isPaused = false;
+                let totalTime = 0;
+
+                function updateProgress() {
+                    if (totalTime > 0) {
+                        const progress = ((totalTime - countdownTime) / totalTime) * 100;
+                        progressBar.style.width = `${progress}%`;
                     }
-                    lastSec = s;
+                }
+
+                function updateTime() {
+                    if (!isCountingDown || isPaused) {
+                        let s = new Date().getSeconds();
+                        if (s === lastSec) {
+                            return;
+                        }
+                        lastSec = s;
+                    } else {
+                        if (countdownTime > 0) {
+                            countdownTime--;
+                            updateProgress();
+                            if (countdownTime === 0) {
+                                showMessage("番茄钟时间到！");
+                                isCountingDown = false;
+                                startButton.style.display = 'inline-block';
+                                hasHours = true;
+                                hourGroup.style.display = 'flex';
+                                progressBar.style.width = '0%';
+                                progressContainer.style.opacity = '0';
+                                buttonContainer.style.opacity = '0';
+                                buttonContainer.style.pointerEvents = 'none';
+                                pauseButton.querySelector('span').textContent = '暂停';
+                            }
+                        }
+                    }
+                    
                     const currStr = getTimeStr();
-                    colElms.forEach(({ toggleActive, getCurr, setCurr, setNext }, i) => {
+                    const activeElms = hasHours ? [...hourElms, ...minSecElms] : minSecElms;
+                    activeElms.forEach(({ toggleActive, getCurr, setCurr, setNext }, i) => {
                         var currTxt = getCurr();
                         setNext(currStr[i]);
                         if (currTxt !== currStr[i]) {
@@ -325,8 +486,75 @@ export default class PluginSample extends Plugin {
                     updateTime();
                     setTimeout(() => {
                         run();
-                    }, 1000 / 60);
+                    }, 1000);
                 }
+
+                // 开始按钮点击事件
+                startButton.addEventListener('click', () => {
+                    timeDiv.style.display = 'none';
+                    controlArea.style.display = 'none';
+                    settingArea.style.display = 'flex';
+                });
+
+                // 确认按钮点击事件
+                confirmButton.addEventListener('click', () => {
+                    const hours = parseInt((hoursInput as HTMLInputElement).value) || 0;
+                    const minutes = parseInt((minutesInput as HTMLInputElement).value) || 0;
+                    const seconds = parseInt((secondsInput as HTMLInputElement).value) || 0;
+                    
+                    countdownTime = hours * 3600 + minutes * 60 + seconds;
+                    if (countdownTime > 0) {
+                        totalTime = countdownTime;
+                        isCountingDown = true;
+                        isPaused = false;
+                        startButton.style.display = 'none';
+                        
+                        hasHours = hours > 0;
+                        hourGroup.style.display = hasHours ? 'flex' : 'none';
+
+                        timeDiv.style.display = 'flex';
+                        controlArea.style.display = 'flex';
+                        settingArea.style.display = 'none';
+                        progressBar.style.width = '0%';
+                        progressContainer.style.opacity = '1';
+                    }
+                });
+
+                // 取消按钮点击事件
+                cancelButton.addEventListener('click', () => {
+                    timeDiv.style.display = 'flex';
+                    controlArea.style.display = 'flex';
+                    settingArea.style.display = 'none';
+                });
+
+                // 暂停按钮事件
+                pauseButton.addEventListener('click', () => {
+                    isPaused = !isPaused;
+                    pauseButton.querySelector('span').textContent = isPaused ? '继续' : '暂停';
+                });
+
+                // 终止按钮事件
+                stopButton.addEventListener('click', () => {
+                    isCountingDown = false;
+                    isPaused = false;
+                    countdownTime = 0;
+                    startButton.style.display = 'inline-block';
+                    hasHours = true;
+                    hourGroup.style.display = 'flex';
+                    progressBar.style.width = '0%';
+                    progressContainer.style.opacity = '0';
+                    buttonContainer.style.opacity = '0';
+                    buttonContainer.style.pointerEvents = 'none';
+                    pauseButton.querySelector('span').textContent = '暂停';
+                });
+
+                // 添加到主容器
+                container.appendChild(timeDiv);
+                container.appendChild(settingArea);
+                container.appendChild(controlArea);
+                container.appendChild(progressContainer);
+                container.appendChild(buttonContainer);
+                dock.element.appendChild(container);
 
                 run();
             }
