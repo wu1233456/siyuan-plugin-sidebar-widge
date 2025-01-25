@@ -132,61 +132,108 @@ export default class PluginSample extends Plugin {
                     .pomodoro-container { display: flex; flex-direction: column; align-items: center; height: 100%; padding: 20px; }
                     .timer-display { font-size: 48px; font-weight: bold; margin: 20px 0; position: relative; }
                     .flip-clock { display: flex; gap: 10px; }
-                    .flip-unit { position: relative; width: 60px; height: 80px; }
-                    .flip-card { position: relative; width: 100%; height: 100%; }
-                    
-                    .flip-top, .flip-bottom, .flip-back-top, .flip-back-bottom {
-                        position: absolute;
-                        width: 100%;
-                        height: 50%;
-                        overflow: hidden;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        font-size: 48px;
-                        background: var(--b3-theme-background);
-                        color: var(--b3-theme-on-background);
+                    .flip-unit { 
+                        position: relative; 
+                        width: 60px; 
+                        height: 80px;
+                        background: var(--b3-theme-surface);
+                        border-radius: 8px;
+                        perspective: 400px;
+                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
                         border: 1px solid var(--b3-border-color);
                     }
                     
-                    .flip-top, .flip-back-top {
-                        background: var(--b3-theme-surface);
-                        border-top-left-radius: 8px;
-                        border-top-right-radius: 8px;
-                        border-bottom: 1px solid rgba(0,0,0,0.1);
-                        align-items: flex-end;
-                    }
-                    
-                    .flip-bottom, .flip-back-bottom {
-                        bottom: 0;
-                        border-bottom-left-radius: 8px;
-                        border-bottom-right-radius: 8px;
-                        border-top: 1px solid rgba(0,0,0,0.1);
-                        align-items: flex-start;
-                    }
-                    
-                    .flip-top span, .flip-back-top span {
-                        transform: translateY(50%);
-                    }
-                    
-                    .flip-bottom span, .flip-back-bottom span {
-                        transform: translateY(-50%);
-                    }
-                    
-                    .flip-back {
-                        position: absolute;
-                        top: 0;
-                        left: 0;
+                    .flip-card {
+                        position: relative;
                         width: 100%;
                         height: 100%;
-                        transform-origin: 50% 50%;
-                        transition: transform 0.6s;
-                        backface-visibility: hidden;
-                        transform: rotateX(0deg);
+                        text-align: center;
+                        font-size: 48px;
+                        line-height: 80px;
+                        font-weight: bold;
                     }
-                    
-                    .flip-card.flipped .flip-back {
+
+                    .flip-card::before,
+                    .flip-card::after {
+                        content: attr(data-number);
+                        position: absolute;
+                        left: 0;
+                        right: 0;
+                        width: 100%;
+                        overflow: hidden;
+                        background: var(--b3-theme-surface);
+                        color: var(--b3-theme-on-background);
+                        backface-visibility: hidden;
+                        border-left: 1px solid var(--b3-border-color);
+                        border-right: 1px solid var(--b3-border-color);
+                    }
+
+                    .flip-card::before {
+                        top: 0;
+                        bottom: 50%;
+                        border-top-left-radius: 8px;
+                        border-top-right-radius: 8px;
+                        border-top: 1px solid var(--b3-border-color);
+                        border-bottom: 1px solid rgba(0,0,0,0.1);
+                        line-height: 80px;
+                        background-image: linear-gradient(to bottom, 
+                            var(--b3-theme-surface) 0%, 
+                            var(--b3-theme-surface) 50%,
+                            var(--b3-theme-background) 51%, 
+                            var(--b3-theme-background) 100%
+                        );
+                        transform-origin: center bottom;
+                        backface-visibility: hidden;
+                    }
+
+                    .flip-card::after {
+                        top: 50%;
+                        height: 50%;
+                        border-bottom-left-radius: 8px;
+                        border-bottom-right-radius: 8px;
+                        border-bottom: 1px solid var(--b3-border-color);
+                        transform-origin: center top;
+                        line-height: 0;
+                        background-image: linear-gradient(to bottom,
+                            var(--b3-theme-background) 0%,
+                            var(--b3-theme-background) 49%,
+                            var(--b3-theme-surface) 50%,
+                            var(--b3-theme-surface) 100%
+                        );
                         transform: rotateX(-180deg);
+                        backface-visibility: hidden;
+                    }
+
+                    .flip-card.flipped::before {
+                        animation: frontFlipDown 0.6s ease-in-out forwards;
+                        box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.3);
+                    }
+
+                    .flip-card.flipped::after {
+                        animation: backFlipDown 0.6s ease-in-out forwards;
+                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+                    }
+
+                    @keyframes frontFlipDown {
+                        0% {
+                            transform: rotateX(0);
+                            z-index: 3;
+                        }
+                        100% {
+                            transform: rotateX(-180deg);
+                            z-index: 1;
+                        }
+                    }
+
+                    @keyframes backFlipDown {
+                        0% {
+                            transform: rotateX(-180deg);
+                            z-index: 1;
+                        }
+                        100% {
+                            transform: rotateX(0);
+                            z-index: 3;
+                        }
                     }
 
                     .progress-bar { width: 80%; height: 4px; background: var(--b3-theme-surface); border-radius: 2px; margin: 20px 0; }
@@ -208,46 +255,18 @@ export default class PluginSample extends Plugin {
                     <div class="pomodoro-container">
                         <div class="timer-display">
                             <div class="flip-clock">
-                                <div class="flip-unit minutes-tens">
-                                    <div class="flip-card">
-                                        <div class="flip-top"><span>2</span></div>
-                                        <div class="flip-bottom"><span>2</span></div>
-                                        <div class="flip-back">
-                                            <div class="flip-back-top"><span>1</span></div>
-                                            <div class="flip-back-bottom"><span>1</span></div>
-                                        </div>
-                                    </div>
+                                <div class="flip-unit">
+                                    <div class="flip-card" data-number="2"></div>
                                 </div>
-                                <div class="flip-unit minutes-ones">
-                                    <div class="flip-card">
-                                        <div class="flip-top"><span>5</span></div>
-                                        <div class="flip-bottom"><span>5</span></div>
-                                        <div class="flip-back">
-                                            <div class="flip-back-top"><span>4</span></div>
-                                            <div class="flip-back-bottom"><span>4</span></div>
-                                        </div>
-                                    </div>
+                                <div class="flip-unit">
+                                    <div class="flip-card" data-number="5"></div>
                                 </div>
                                 <div style="font-size: 48px; margin: 0 5px;">:</div>
-                                <div class="flip-unit seconds-tens">
-                                    <div class="flip-card">
-                                        <div class="flip-top"><span>0</span></div>
-                                        <div class="flip-bottom"><span>0</span></div>
-                                        <div class="flip-back">
-                                            <div class="flip-back-top"><span>5</span></div>
-                                            <div class="flip-back-bottom"><span>5</span></div>
-                                        </div>
-                                    </div>
+                                <div class="flip-unit">
+                                    <div class="flip-card" data-number="0"></div>
                                 </div>
-                                <div class="flip-unit seconds-ones">
-                                    <div class="flip-card">
-                                        <div class="flip-top"><span>0</span></div>
-                                        <div class="flip-bottom"><span>0</span></div>
-                                        <div class="flip-back">
-                                            <div class="flip-back-top"><span>9</span></div>
-                                            <div class="flip-back-bottom"><span>9</span></div>
-                                        </div>
-                                    </div>
+                                <div class="flip-unit">
+                                    <div class="flip-card" data-number="0"></div>
                                 </div>
                             </div>
                         </div>
@@ -265,10 +284,10 @@ export default class PluginSample extends Plugin {
                 let timer = null;
                 const elements = {
                     clock: {
-                        minutesTens: dock.element.querySelector('.minutes-tens .flip-card'),
-                        minutesOnes: dock.element.querySelector('.minutes-ones .flip-card'),
-                        secondsTens: dock.element.querySelector('.seconds-tens .flip-card'),
-                        secondsOnes: dock.element.querySelector('.seconds-ones .flip-card')
+                        minutesTens: dock.element.querySelector('.flip-unit:nth-child(1) .flip-card'),
+                        minutesOnes: dock.element.querySelector('.flip-unit:nth-child(2) .flip-card'),
+                        secondsTens: dock.element.querySelector('.flip-unit:nth-child(4) .flip-card'),
+                        secondsOnes: dock.element.querySelector('.flip-unit:nth-child(5) .flip-card')
                     },
                     progress: dock.element.querySelector('.progress-bar-fill'),
                     startBtn: dock.element.querySelector('#startBtn'),
@@ -284,40 +303,25 @@ export default class PluginSample extends Plugin {
                     const secondsTens = Math.floor(seconds / 10);
                     const secondsOnes = seconds % 10;
 
-                    // 计算下一秒的值
-                    const nextTimeLeft = timeLeft - 1;
-                    const nextMinutes = Math.floor(nextTimeLeft / 60);
-                    const nextSeconds = nextTimeLeft % 60;
-                    const nextMinutesTens = Math.floor(nextMinutes / 10);
-                    const nextMinutesOnes = nextMinutes % 10;
-                    const nextSecondsTens = Math.floor(nextSeconds / 10);
-                    const nextSecondsOnes = nextSeconds % 10;
-
-                    // 更新翻页效果
-                    const updateFlipCard = (element: Element, value: number, prevValue: number) => {
-                        if (value !== prevValue) {
-                            const front = element.querySelector('.flip-top span') as HTMLElement;
-                            const bottom = element.querySelector('.flip-bottom span') as HTMLElement;
-                            const backTop = element.querySelector('.flip-back-top span') as HTMLElement;
-                            const backBottom = element.querySelector('.flip-back-bottom span') as HTMLElement;
-
-                            front.textContent = value.toString();
-                            bottom.textContent = value.toString();
-                            backTop.textContent = prevValue.toString();
-                            backBottom.textContent = prevValue.toString();
-
+                    const updateFlipCard = (element: Element, newValue: number) => {
+                        const currentValue = parseInt(element.getAttribute('data-number') || '0');
+                        if (newValue !== currentValue) {
+                            // 先移除之前的动画类
+                            element.classList.remove('flipped');
+                            
+                            // 强制重排，确保移除类生效
+                            void (element as HTMLElement).offsetWidth;
+                            
+                            // 设置新值并添加动画类
+                            element.setAttribute('data-number', newValue.toString());
                             element.classList.add('flipped');
-                            setTimeout(() => {
-                                element.classList.remove('flipped');
-                            }, 600);
                         }
                     };
 
-                    // 只在值发生变化时才更新对应的卡片
-                    updateFlipCard(elements.clock.minutesTens, minutesTens, nextMinutesTens);
-                    updateFlipCard(elements.clock.minutesOnes, minutesOnes, nextMinutesOnes);
-                    updateFlipCard(elements.clock.secondsTens, secondsTens, nextSecondsTens);
-                    updateFlipCard(elements.clock.secondsOnes, secondsOnes, nextSecondsOnes);
+                    updateFlipCard(elements.clock.minutesTens, minutesTens);
+                    updateFlipCard(elements.clock.minutesOnes, minutesOnes);
+                    updateFlipCard(elements.clock.secondsTens, secondsTens);
+                    updateFlipCard(elements.clock.secondsOnes, secondsOnes);
 
                     (elements.progress as HTMLElement).style.width = `${((duration - timeLeft) / duration) * 100}%`;
                 };
