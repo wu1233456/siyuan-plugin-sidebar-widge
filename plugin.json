@@ -1,6 +1,6 @@
 {
-  "name": "plugin-sample-vite-svelte",
-  "author": "frostime",
+  "name": "tomato-clock",
+  "author": "wuchunlin",
   "url": "https://github.com/siyuan-note/plugin-sample-vite-svelte",
   "version": "0.3.6",
   "minAppVersion": "3.0.12",
@@ -22,7 +22,7 @@
   ],
   "displayName": {
     "en_US": "Plugin sample with vite and svelte",
-    "zh_CN": "插件样例 vite + svelte 版"
+    "zh_CN": "番茄时钟"
   },
   "description": {
     "en_US": "SiYuan plugin sample with vite and svelte",
