@@ -1,30 +1,14 @@
 import {
     Plugin,
     showMessage,
-    confirm,
     Dialog,
     Menu,
-    openTab,
-    adaptHotkey,
     getFrontend,
-    getBackend,
     IModel,
-    Protyle,
-    openWindow,
-    IOperation,
-    Constants,
-    openMobileFileById,
-    lockScreen,
-    ICard,
-    ICardData
 } from "siyuan";
 import "@/index.scss";
 
-import HelloExample from "@/hello.svelte";
-import SettingExample from "@/setting-example.svelte";
-
 import { SettingUtils } from "./libs/setting-utils";
-import { svelteDialog } from "./libs/dialog";
 
 const STORAGE_NAME = "menu-config";
 const TAB_TYPE = "custom_tab";
@@ -294,7 +278,7 @@ export default class PluginSample extends Plugin {
                 // 添加必要的变量定义
                 const showSecondsCheckbox = document.createElement('input');
                 showSecondsCheckbox.type = 'checkbox';
-                showSecondsCheckbox.checked = true; // 默认显示秒
+                showSecondsCheckbox.checked = true; // 默认不显示秒
 
                 const notificationCheckbox = document.createElement('input');
                 notificationCheckbox.type = 'checkbox';
@@ -341,6 +325,91 @@ export default class PluginSample extends Plugin {
                         label: "消息通知",
                         click: () => {
                             notificationCheckbox.checked = !notificationCheckbox.checked;
+                        }
+                    });
+
+                    menu.addSeparator();
+
+                    // 添加时钟样式设置选项
+                    menu.addItem({
+                        icon: "iconEdit",
+                        label: "时钟样式设置",
+                        click: () => {
+                            const dialog = new Dialog({
+                                title: "时钟样式设置",
+                                content: `
+                                    <div class="b3-dialog__content" style="display: flex; flex-direction: column; gap: 1rem; padding: 20px;">
+                                        <div class="fn__flex-column">
+                                            <div class="fn__flex" style="align-items: center; margin-bottom: 10px;">
+                                                <label class="fn__flex" style="width: 80px;">卡片颜色</label>
+                                                <input type="color" id="card-color" class="b3-text-field" 
+                                                    value="#1e1e1e"
+                                                    style="width: 80px; height: 32px; padding: 2px;">
+                                            </div>
+                                            <div class="fn__flex" style="align-items: center;">
+                                                <label class="fn__flex" style="width: 80px;">数字颜色</label>
+                                                <input type="color" id="number-color" class="b3-text-field"
+                                                    value="#ffffff"
+                                                    style="width: 80px; height: 32px; padding: 2px;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                `,
+                                width: "320px",
+                            });
+
+                            const saveSettings = () => {
+                                const cardColor = (dialog.element.querySelector('#card-color') as HTMLInputElement).value;
+                                const numberColor = (dialog.element.querySelector('#number-color') as HTMLInputElement).value;
+
+                                // 更新样式
+                                const style = document.createElement('style');
+                                style.textContent = `
+                                    .col {
+                                        background-color: ${cardColor} !important;
+                                    }
+                                    .curr, .next {
+                                        color: ${numberColor} !important;
+                                        background-color: ${cardColor} !important;
+                                    }
+                                    .curr::before, .next::before {
+                                        background-color: ${cardColor} !important;
+                                        color: ${numberColor} !important;
+                                    }
+                                    .flip .curr::before, .flip .next::before {
+                                        background-color: ${cardColor} !important;
+                                        color: ${numberColor} !important;
+                                    }
+                                `;
+                                
+                                // 移除旧的样式（如果存在）
+                                const oldStyle = document.getElementById('clock-custom-style');
+                                if (oldStyle) {
+                                    oldStyle.remove();
+                                }
+                                
+                                // 添加新样式
+                                style.id = 'clock-custom-style';
+                                document.head.appendChild(style);
+
+                                dialog.destroy();
+                            };
+
+                            // 添加确定和取消按钮
+                            const btns = document.createElement("div");
+                            btns.className = "fn__flex b3-dialog__action";
+                            btns.innerHTML = `
+                                <button class="b3-button b3-button--cancel">取消</button>
+                                <div class="fn__space"></div>
+                                <button class="b3-button b3-button--text">确定</button>
+                            `;
+                            dialog.element.querySelector('.b3-dialog__content').appendChild(btns);
+
+                            // 绑定按钮事件
+                            btns.querySelector('.b3-button--cancel').addEventListener('click', () => {
+                                dialog.destroy();
+                            });
+                            btns.querySelector('.b3-button--text').addEventListener('click', saveSettings);
                         }
                     });
 
