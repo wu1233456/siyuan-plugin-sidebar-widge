@@ -52,15 +52,15 @@ export class MemorialDay {
         this.titleElement = document.createElement('div');
         this.titleElement.textContent = this.title;
         this.titleElement.style.cssText = `
-            font-size: 14px;
-            margin-bottom: 8px;
+            font-size: 12px;
+            margin-bottom: 4px;
         `;
 
         this.dayElement = document.createElement('div');
         this.dayElement.style.cssText = `
-            font-size: 24px;
+            font-size: 16px;
             font-weight: bold;
-            margin: 8px 0;
+            margin: 4px 0;
             color: var(--b3-theme-primary);
         `;
 
@@ -80,7 +80,7 @@ export class MemorialDay {
         calendarContainer.style.cssText = `
             min-width: 110px;
             width: 110px;
-            margin-left: 8px;
+            margin-left: 4px;
         `;
 
         // 检查容器宽度并设置日历显示
