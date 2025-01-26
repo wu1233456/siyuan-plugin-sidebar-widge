@@ -12,6 +12,7 @@ import { MemorialDay } from "./components/MemorialDay/memorial-day";
 import { HabitTracker } from "./components/habit-tracker/habit-tracker";
 import { StickyNote } from "./components/sticky-note/sticky-note";
 import { Calendar } from "./components/calendar/calendar";
+import { TodoList } from "./components/todo-list/todo-list";
 
 const STORAGE_NAME = "menu-config";
 const TAB_TYPE = "custom_tab";
@@ -26,6 +27,7 @@ export default class PluginSample extends Plugin {
     private habitTracker: HabitTracker;
     private stickyNote: StickyNote;
     private calendar: Calendar;
+    private todoList: TodoList;
 
     async onload() {
         this.data[STORAGE_NAME] = { readonlyText: "Readonly" };
@@ -59,6 +61,9 @@ export default class PluginSample extends Plugin {
 </symbol>
 <symbol id="iconCalendar" viewBox="0 0 1024 1024">
     <path d="M896 128h-96v64c0 35.3-28.7 64-64 64s-64-28.7-64-64v-64H352v64c0 35.3-28.7 64-64 64s-64-28.7-64-64v-64h-96c-35.3 0-64 28.7-64 64v640c0 35.3 28.7 64 64 64h768c35.3 0 64-28.7 64-64V192c0-35.3-28.7-64-64-64z m0 704H128V384h768v448zM288 64c-17.7 0-32 14.3-32 32v128c0 17.7 14.3 32 32 32s32-14.3 32-32V96c0-17.7-14.3-32-32-32z m448 0c-17.7 0-32 14.3-32 32v128c0 17.7 14.3 32 32 32s32-14.3 32-32V96c0-17.7-14.3-32-32-32z"></path>
+</symbol>
+<symbol id="iconTodo" viewBox="0 0 24 24">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM17.99 9l-1.41-1.42-6.59 6.59-2.58-2.57-1.42 1.41 4 3.99z"/>
 </symbol>`);
 
         // 创建行容器
@@ -164,6 +169,17 @@ export default class PluginSample extends Plugin {
                 calendarCard.style.cssText = cardStyle;
                 calendarRow.appendChild(calendarCard);
                 this.calendar = new Calendar(calendarCard);
+
+                // 创建第六行并添加待办事项卡片
+                const todoRow = createRow();
+                dock.element.appendChild(todoRow);
+                const todoCard = document.createElement('div');
+                todoCard.className = 'card';
+                todoCard.setAttribute('draggable', 'true');
+                todoCard.dataset.cardType = 'todo';
+                todoCard.style.cssText = cardStyle;
+                todoRow.appendChild(todoCard);
+                this.todoList = new TodoList(todoCard);
 
                 // 添加拖拽相关事件监听
                 const cards = dock.element.getElementsByClassName('card');
