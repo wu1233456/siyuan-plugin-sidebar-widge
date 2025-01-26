@@ -13,6 +13,7 @@ import { HabitTracker } from "./components/habit-tracker/habit-tracker";
 import { StickyNote } from "./components/sticky-note/sticky-note";
 import { Calendar } from "./components/calendar/calendar";
 import { TodoList } from "./components/todo-list/todo-list";
+import { Bookmark } from "./components/bookmark/bookmark";
 
 const STORAGE_NAME = "menu-config";
 const TAB_TYPE = "custom_tab";
@@ -28,6 +29,7 @@ export default class PluginSample extends Plugin {
     private stickyNote: StickyNote;
     private calendar: Calendar;
     private todoList: TodoList;
+    private bookmark: Bookmark;
 
     async onload() {
         this.data[STORAGE_NAME] = { readonlyText: "Readonly" };
@@ -64,6 +66,9 @@ export default class PluginSample extends Plugin {
 </symbol>
 <symbol id="iconTodo" viewBox="0 0 24 24">
     <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM17.99 9l-1.41-1.42-6.59 6.59-2.58-2.57-1.42 1.41 4 3.99z"/>
+</symbol>
+<symbol id="iconBookmark" viewBox="0 0 24 24">
+    <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
 </symbol>`);
 
         // 创建行容器
@@ -180,6 +185,17 @@ export default class PluginSample extends Plugin {
                 todoCard.style.cssText = cardStyle;
                 todoRow.appendChild(todoCard);
                 this.todoList = new TodoList(todoCard);
+
+                // 创建第七行并添加收藏卡片
+                const bookmarkRow = createRow();
+                dock.element.appendChild(bookmarkRow);
+                const bookmarkCard = document.createElement('div');
+                bookmarkCard.className = 'card';
+                bookmarkCard.setAttribute('draggable', 'true');
+                bookmarkCard.dataset.cardType = 'bookmark';
+                bookmarkCard.style.cssText = cardStyle;
+                bookmarkRow.appendChild(bookmarkCard);
+                this.bookmark = new Bookmark(bookmarkCard);
 
                 // 添加拖拽相关事件监听
                 const cards = dock.element.getElementsByClassName('card');
