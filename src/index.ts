@@ -54,6 +54,35 @@ export default class PluginSample extends Plugin {
     <path d="M19.045 3.875c-1.23-1.34-2.76-2.01-4.38-1.98-1.62.03-3.12.72-4.44 1.92-5.76 1.2-1.2 2.76-1.8 4.44-1.8 1.62.03 3.15.72 4.5 1.92 5.7 1.2 1.2 2.76 1.8 4.44 1.8zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6-3.6zM3.48 21c-.48.48-.48 1.2 0 1.68l.96.96c.48.48 1.2.48 1.68 0l.96-.96c.48-.48.48-1.2 0-1.68l-.96-.96zM12 12c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6-3.6z"/>
 </symbol>`);
 
+        // 创建行容器
+        const createRow = () => {
+            const row = document.createElement('div');
+            row.className = 'card-row';
+            row.style.cssText = `
+                display: flex;
+                flex-direction: row;
+                gap: 5px;
+                width: 100%;
+                min-height: min-content;
+            `;
+            return row;
+        };
+
+        // 修改卡片样式，使其支持自适应宽度
+        const cardStyle = `
+            background: var(--b3-theme-surface);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--b3-theme-surface-lighter);
+            position: relative;
+            cursor: move;
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        `;
+
         this.addDock({
             config: {
                 position: "LeftBottom",
@@ -67,64 +96,44 @@ export default class PluginSample extends Plugin {
             },
             type: DOCK_TYPE,
             init: (dock) => {
-                // 创建卡片容器
+                // 设置dock容器的内边距，确保有足够的空间
+                dock.element.style.padding = '0';
+                dock.element.style.boxSizing = 'border-box';
+                dock.element.style.display = 'flex';
+                dock.element.style.flexDirection = 'column';
+                dock.element.style.gap = '5px';
+
+                // 创建第一行并添加番茄钟卡片
+                const tomatoRow = createRow();
+                dock.element.appendChild(tomatoRow);
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.setAttribute('draggable', 'true');
                 card.dataset.cardType = 'tomato';
-                card.style.cssText = `
-                    background: var(--b3-theme-surface);
-                    border-radius: 16px;
-                    margin: 5px 5px;
-                    overflow: hidden;
-                    transition: all 0.3s ease;
-                    border: 1px solid var(--b3-theme-surface-lighter);
-                    position: relative;
-                    cursor: move;
-                `;
-
-                // 设置dock容器的内边距，确保有足够的空间
-                dock.element.style.padding = '0';
-                dock.element.style.boxSizing = 'border-box';
-
-                dock.element.appendChild(card);
-                
+                card.style.cssText = cardStyle;
+                tomatoRow.appendChild(card);
                 this.tomatoClock = new TomatoClock(card);
 
-                // 添加纪念日卡片
+                // 创建第二行并添加纪念日卡片
+                const memorialRow = createRow();
+                dock.element.appendChild(memorialRow);
                 const memorialCard = document.createElement('div');
                 memorialCard.className = 'card';
                 memorialCard.setAttribute('draggable', 'true');
                 memorialCard.dataset.cardType = 'memorial';
-                memorialCard.style.cssText = `
-                    background: var(--b3-theme-surface);
-                    border-radius: 16px;
-                    margin: 5px 5px;
-                    overflow: hidden;
-                    transition: all 0.3s ease;
-                    border: 1px solid var(--b3-theme-surface-lighter);
-                    position: relative;
-                    cursor: move;
-                `;
-                dock.element.appendChild(memorialCard);
+                memorialCard.style.cssText = cardStyle;
+                memorialRow.appendChild(memorialCard);
                 this.memorialDay = new MemorialDay(memorialCard);
 
-                // 添加习惯追踪器卡片
+                // 创建第三行并添加习惯追踪器卡片
+                const habitRow = createRow();
+                dock.element.appendChild(habitRow);
                 const habitCard = document.createElement('div');
                 habitCard.className = 'card';
                 habitCard.setAttribute('draggable', 'true');
                 habitCard.dataset.cardType = 'habit';
-                habitCard.style.cssText = `
-                    background: var(--b3-theme-surface);
-                    border-radius: 16px;
-                    margin: 5px 5px;
-                    overflow: hidden;
-                    transition: all 0.3s ease;
-                    border: 1px solid var(--b3-theme-surface-lighter);
-                    position: relative;
-                    cursor: move;
-                `;
-                dock.element.appendChild(habitCard);
+                habitCard.style.cssText = cardStyle;
+                habitRow.appendChild(habitCard);
                 this.habitTracker = new HabitTracker(habitCard);
 
                 // 添加拖拽相关事件监听
@@ -137,22 +146,75 @@ export default class PluginSample extends Plugin {
                         draggedCard = e.target as HTMLElement;
                         draggedCard.style.opacity = '0.5';
                         
-                        // 设置拖拽效果为移动而不是复制
                         if (e.dataTransfer) {
                             e.dataTransfer.effectAllowed = 'move';
                         }
                         
-                        // 创建占位元素
+                        // 创建占位符并继承被拖动卡片的尺寸
+                        const draggedRect = draggedCard.getBoundingClientRect();
                         placeholder = document.createElement('div');
                         placeholder.className = 'card-placeholder';
                         placeholder.style.cssText = `
-                            height: ${draggedCard.offsetHeight}px;
-                            margin: 5px 5px;
+                            ${cardStyle}
                             border: 2px dashed var(--b3-theme-primary);
-                            border-radius: 16px;
                             background: var(--b3-theme-surface-light);
-                            transition: all 0.2s ease;
+                            height: ${draggedRect.height}px;
+                            min-height: ${draggedRect.height}px;
+                            transition: none;
                         `;
+                    });
+
+                    card.addEventListener('dragover', (e: DragEvent) => {
+                        e.preventDefault();
+                        if (e.dataTransfer) {
+                            e.dataTransfer.dropEffect = 'move';
+                        }
+                        
+                        const target = e.target as HTMLElement;
+                        const cardTarget = target.closest('.card') as HTMLElement;
+                        if (!cardTarget || !draggedCard || cardTarget === draggedCard || cardTarget === placeholder) {
+                            return;
+                        }
+
+                        const targetRect = cardTarget.getBoundingClientRect();
+                        const mouseX = e.clientX;
+                        const mouseY = e.clientY;
+                        const horizontalThreshold = targetRect.left + targetRect.width / 2;
+                        const verticalThreshold = targetRect.top + targetRect.height / 2;
+
+                        // 判断是水平还是垂直移动
+                        const isHorizontalMove = Math.abs(mouseX - horizontalThreshold) > Math.abs(mouseY - verticalThreshold);
+
+                        if (placeholder) {
+                            if (isHorizontalMove) {
+                                // 水平移动
+                                if (mouseX < horizontalThreshold) {
+                                    cardTarget.parentNode?.insertBefore(placeholder, cardTarget);
+                                } else {
+                                    cardTarget.parentNode?.insertBefore(placeholder, cardTarget.nextSibling);
+                                }
+                            } else {
+                                // 垂直移动
+                                const currentRow = cardTarget.parentElement;
+                                if (!currentRow) return;
+
+                                // 如果占位符还没有自己的行，创建一个
+                                if (!placeholder.parentElement) {
+                                    const placeholderRow = createRow();
+                                    placeholderRow.appendChild(placeholder);
+                                }
+
+                                const placeholderRow = placeholder.parentElement!;
+                                
+                                if (mouseY < verticalThreshold) {
+                                    // 移动到上方
+                                    currentRow.parentNode?.insertBefore(placeholderRow, currentRow);
+                                } else {
+                                    // 移动到下方
+                                    currentRow.parentNode?.insertBefore(placeholderRow, currentRow.nextSibling);
+                                }
+                            }
+                        }
                     });
 
                     card.addEventListener('dragend', (e) => {
@@ -160,62 +222,36 @@ export default class PluginSample extends Plugin {
                             draggedCard.style.opacity = '1';
                         }
                         if (placeholder && placeholder.parentNode) {
-                            placeholder.parentNode.insertBefore(draggedCard!, placeholder);
+                            const targetRow = placeholder.parentElement;
+                            targetRow?.insertBefore(draggedCard!, placeholder);
                             placeholder.remove();
+
+                            // 清理空行
+                            const rows = dock.element.getElementsByClassName('card-row');
+                            Array.from(rows).forEach(row => {
+                                if (!row.hasChildNodes()) {
+                                    row.remove();
+                                }
+                            });
                         }
                         draggedCard = null;
                         placeholder = null;
                     });
 
-                    card.addEventListener('dragover', (e: DragEvent) => {
-                        e.preventDefault();
-                        // 设置放置效果为移动
-                        if (e.dataTransfer) {
-                            e.dataTransfer.dropEffect = 'move';
-                        }
-                        
-                        const target = e.target as HTMLElement;
-                        // 确保目标是卡片本身，而不是卡片的子元素
-                        const cardTarget = target.closest('.card') as HTMLElement;
-                        if (!cardTarget || !draggedCard || cardTarget === draggedCard || cardTarget === placeholder) {
-                            return;
-                        }
-
-                        const targetRect = cardTarget.getBoundingClientRect();
-                        const mouseY = e.clientY;
-                        const threshold = targetRect.top + targetRect.height / 2;
-
-                        if (placeholder && placeholder !== cardTarget) {
-                            if (mouseY < threshold) {
-                                cardTarget.parentNode?.insertBefore(placeholder, cardTarget);
-                            } else {
-                                cardTarget.parentNode?.insertBefore(placeholder, cardTarget.nextSibling);
-                            }
-                        } else if (!placeholder) {
-                            cardTarget.parentNode?.insertBefore(placeholder!, cardTarget);
-                        }
-                    });
-
                     card.addEventListener('drop', (e) => {
                         e.preventDefault();
-                        e.stopPropagation(); // 阻止事件冒泡
+                        e.stopPropagation();
                     });
                 });
 
-                // 为dock容器添加dragover事件，处理拖到最后位置的情况
+                // 为dock容器添加dragover事件
                 dock.element.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     const target = e.target as HTMLElement;
-                    // 只有当鼠标直接在dock容器上时才处理
-                    if (target === dock.element && placeholder && !target.closest('.card')) {
-                        dock.element.appendChild(placeholder);
-                    }
-                });
-
-                // 阻止dock容器内部元素的拖拽事件冒泡
-                dock.element.addEventListener('dragenter', (e) => {
-                    if ((e.target as HTMLElement).closest('.card')) {
-                        e.stopPropagation();
+                    if (target === dock.element && placeholder) {
+                        const newRow = createRow();
+                        newRow.appendChild(placeholder);
+                        dock.element.appendChild(newRow);
                     }
                 });
             }
