@@ -97,7 +97,7 @@ export default class PluginSample extends Plugin {
             type: DOCK_TYPE,
             init: (dock) => {
                 // 设置dock容器的内边距，确保有足够的空间
-                dock.element.style.padding = '0';
+                dock.element.style.padding = '8px';
                 dock.element.style.boxSizing = 'border-box';
                 dock.element.style.display = 'flex';
                 dock.element.style.flexDirection = 'column';

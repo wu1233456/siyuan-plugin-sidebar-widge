@@ -530,16 +530,32 @@ export class TomatoClock {
                 this.countdownTime--;
                 this.updateProgress();
                 if (this.countdownTime === 0) {
-                    if (this.notificationCheckbox?.checked) {
+                    if (this.isCountingDown && this.notificationCheckbox?.checked) {
                         if (this.isSimpleCountdown) {
-                            showMessage("倒计时结束！");
+                            new Dialog({
+                                title: "倒计时提醒",
+                                content: `<div class="b3-dialog__content">
+                                    <div class="fn__flex-column" style="align-items: center; padding: 20px;">
+                                        <div style="font-size: 16px; margin-bottom: 12px;">倒计时结束！</div>
+                                    </div>
+                                </div>`,
+                                width: "300px",
+                            });
                             this.handleStop();
                             return;
                         } else {
-                            showMessage(this.isBreakTime ? "休息时间结束！" : "专注时间结束！");
+                            new Dialog({
+                                title: "番茄钟提醒",
+                                content: `<div class="b3-dialog__content">
+                                    <div class="fn__flex-column" style="align-items: center; padding: 20px;">
+                                        <div style="font-size: 16px; margin-bottom: 12px;">${this.isBreakTime ? "休息时间结束！" : "专注时间结束！"}</div>
+                                    </div>
+                                </div>`,
+                                width: "300px",
+                            });
                         }
                     }
-                    if (!this.isSimpleCountdown) {
+                    if (!this.isSimpleCountdown && this.isCountingDown) {
                         this.isBreakTime = !this.isBreakTime;
                         const nextMinutes = this.isBreakTime ? this.selectedBreakTime : this.selectedFocusTime;
                         this.countdownTime = nextMinutes * 60;
@@ -597,6 +613,9 @@ export class TomatoClock {
         this.isPaused = false;
         this.countdownTime = 0;
         this.isSimpleCountdown = false;
+        this.isBreakTime = false;
+        this.totalTime = 0;
+        
         this.settingsButton.style.display = 'block';
         this.countdownButton.style.display = 'block';
         this.settingsButton.style.opacity = '0';
@@ -609,7 +628,6 @@ export class TomatoClock {
         this.buttonContainer.style.opacity = '0';
         this.buttonContainer.style.pointerEvents = 'none';
         this.pauseButton.innerHTML = '<svg class="icon" style="width: 12px; height: 12px; fill: var(--b3-theme-primary);"><use xlink:href="#iconPause"></use></svg>';
-        this.isBreakTime = false;
         
         const titleElement = this.container.closest('.dock')?.querySelector('.dock__title');
         if (titleElement) {
@@ -792,6 +810,34 @@ export class TomatoClock {
             // 绑定按钮事件
             confirmButton.addEventListener('click', () => {
                 dialog.destroy();
+                // 启动番茄钟
+                this.countdownTime = this.selectedFocusTime * 60;
+                this.totalTime = this.countdownTime;
+                this.isCountingDown = true;
+                this.isPaused = false;
+                this.isSimpleCountdown = false;
+                this.isBreakTime = false;
+
+                // 设置显示格式
+                this.hasHours = false;
+                this.hourGroup.style.display = 'none';
+                this.secondGroup.style.display = 'flex';
+
+                // 隐藏设置按钮和倒计时按钮
+                this.settingsButton.style.display = 'none';
+                this.countdownButton.style.display = 'none';
+
+                // 显示进度条和控制按钮
+                this.progressBar.style.width = '0%';
+                this.progressContainer.style.opacity = '1';
+                this.buttonContainer.style.opacity = '1';
+                this.buttonContainer.style.pointerEvents = 'auto';
+
+                // 更新标题
+                const titleElement = this.container.closest('.dock')?.querySelector('.dock__title');
+                if (titleElement) {
+                    titleElement.textContent = '专注时间';
+                }
             });
 
             cancelButton.addEventListener('click', () => {
