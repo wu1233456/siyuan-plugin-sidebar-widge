@@ -9,6 +9,7 @@ import {
 import "@/index.scss";
 import { TomatoClock } from "./components/tomato-clock";
 import { MemorialDay } from "./components/MemorialDay/memorial-day";
+import { HabitTracker } from "./components/habit-tracker/habit-tracker";
 
 const STORAGE_NAME = "menu-config";
 const TAB_TYPE = "custom_tab";
@@ -20,6 +21,7 @@ export default class PluginSample extends Plugin {
     private isMobile: boolean;
     private tomatoClock: TomatoClock;
     private memorialDay: MemorialDay;
+    private habitTracker: HabitTracker;
 
     async onload() {
         this.data[STORAGE_NAME] = { readonlyText: "Readonly" };
@@ -101,6 +103,21 @@ export default class PluginSample extends Plugin {
                 `;
                 dock.element.appendChild(memorialCard);
                 this.memorialDay = new MemorialDay(memorialCard);
+
+                // 添加习惯追踪器卡片
+                const habitCard = document.createElement('div');
+                habitCard.className = 'card';
+                habitCard.style.cssText = `
+                    background: var(--b3-theme-surface);
+                    border-radius: 16px;
+                    margin: 5px 5px;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                    border: 1px solid var(--b3-theme-surface-lighter);
+                    position: relative;
+                `;
+                dock.element.appendChild(habitCard);
+                this.habitTracker = new HabitTracker(habitCard);
             }
         });
     }

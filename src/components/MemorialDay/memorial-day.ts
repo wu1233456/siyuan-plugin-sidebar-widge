@@ -201,34 +201,94 @@ export class MemorialDay {
         const dialog = new Dialog({
             title: "纪念日设置",
             content: `
-                <div class="b3-dialog__content">
-                    <div class="b3-dialog__item">
-                        <label>事件名称</label>
-                        <input class="b3-text-field" type="text" value="${this.title}">
+                <div class="b3-dialog__content" style="padding: 20px;">
+                    <div class="b3-dialog__item" style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; color: var(--b3-theme-on-surface);">事件名称</label>
+                        <input class="b3-text-field" type="text" value="${this.title}" style="
+                            width: 100%;
+                            padding: 8px 12px;
+                            border-radius: 6px;
+                            border: 1px solid var(--b3-theme-surface-lighter);
+                            background: var(--b3-theme-surface);
+                            transition: all 0.3s ease;
+                        ">
                     </div>
-                    <div class="b3-dialog__item">
-                        <label>日期</label>
-                        <input class="b3-text-field" type="date" value="${this.formatDate(this.date)}">
-                    </div>
-                    <div class="b3-dialog__item">
-                        <label>重复频率</label>
-                        <select class="b3-select">
-                            ${Object.values(RepeatType).map(type => 
-                                `<option value="${type}" ${type === this.repeatType ? 'selected' : ''}>${type}</option>`
-                            ).join('')}
-                        </select>
+                    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                        <div class="b3-dialog__item" style="flex: 2;">
+                            <label style="display: block; margin-bottom: 8px; color: var(--b3-theme-on-surface);">日期</label>
+                            <input class="b3-text-field" type="date" value="${this.formatDate(this.date)}" style="
+                                width: 100%;
+                                padding: 8px 12px;
+                                border-radius: 6px;
+                                border: 1px solid var(--b3-theme-surface-lighter);
+                                background: var(--b3-theme-surface);
+                                transition: all 0.3s ease;
+                            ">
+                        </div>
+                        <div class="b3-dialog__item" style="flex: 1;">
+                            <label style="display: block; margin-bottom: 8px; color: var(--b3-theme-on-surface);">重复频率</label>
+                            <select class="b3-select" style="
+                                width: 100%;
+                                padding: 8px 12px;
+                                border-radius: 6px;
+                                border: 1px solid var(--b3-theme-surface-lighter);
+                                background: var(--b3-theme-surface);
+                                transition: all 0.3s ease;
+                            ">
+                                ${Object.values(RepeatType).map(type => 
+                                    `<option value="${type}" ${type === this.repeatType ? 'selected' : ''}>${type}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div class="b3-dialog__action">
-                    <button class="b3-button b3-button--cancel">取消</button>
-                    <button class="b3-button b3-button--text">保存</button>
+                <div class="b3-dialog__action" style="
+                    padding: 16px;
+                    border-top: 1px solid var(--b3-theme-surface-lighter);
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 8px;
+                ">
+                    <button class="b3-button b3-button--cancel" style="
+                        padding: 8px 16px;
+                        border-radius: 6px;
+                        font-size: 14px;
+                    ">取消</button>
+                    <button class="b3-button b3-button--text" style="
+                        padding: 8px 16px;
+                        border-radius: 6px;
+                        font-size: 14px;
+                        background: var(--b3-theme-primary);
+                        color: white;
+                    ">保存</button>
                 </div>
             `,
-            width: "520px",
+            width: "400px",
+        });
+
+        // 添加输入框焦点样式
+        const inputs = dialog.element.querySelectorAll('.b3-text-field, .b3-select') as NodeListOf<HTMLElement>;
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.style.borderColor = 'var(--b3-theme-primary)';
+                input.style.boxShadow = '0 0 0 2px var(--b3-theme-primary-lighter)';
+            });
+            input.addEventListener('blur', () => {
+                input.style.borderColor = 'var(--b3-theme-surface-lighter)';
+                input.style.boxShadow = 'none';
+            });
         });
 
         const saveButton = dialog.element.querySelector('.b3-button--text') as HTMLButtonElement;
         const cancelButton = dialog.element.querySelector('.b3-button--cancel') as HTMLButtonElement;
+
+        // 添加按钮悬停效果
+        saveButton.addEventListener('mouseover', () => {
+            saveButton.style.opacity = '0.9';
+        });
+        saveButton.addEventListener('mouseout', () => {
+            saveButton.style.opacity = '1';
+        });
 
         saveButton.addEventListener("click", () => {
             const titleInput = dialog.element.querySelector('input[type="text"]') as HTMLInputElement;
