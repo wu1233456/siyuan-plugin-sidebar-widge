@@ -31,6 +31,16 @@ export class TomatoClock {
 
     constructor(container: HTMLElement) {
         this.container = container;
+        
+        // 初始化复选框
+        this.showSecondsCheckbox = document.createElement('input');
+        this.showSecondsCheckbox.type = 'checkbox';
+        this.showSecondsCheckbox.checked = false; // 默认不显示秒
+
+        this.notificationCheckbox = document.createElement('input');
+        this.notificationCheckbox.type = 'checkbox';
+        this.notificationCheckbox.checked = true; // 默认开启通知
+        
         this.initElements();
         this.initStyles();
         this.initEvents();
@@ -47,13 +57,13 @@ export class TomatoClock {
         
         // 初始化显示
         this.updateDisplay();
-        this.container.style.position = 'relative';
-        
+       
         // 添加到容器
+        this.container.appendChild(this.settingsButton);
         this.container.appendChild(this.timeDiv);
         this.container.appendChild(this.progressContainer);
         this.container.appendChild(this.buttonContainer);
-        this.container.appendChild(this.settingsButton);
+        this.container.appendChild(this.startButton);
         this.container.appendChild(this.scrollingTextContainer);
     }
 
@@ -61,7 +71,7 @@ export class TomatoClock {
         this.timeDiv = document.createElement('div');
         this.timeDiv.className = 'time';
         this.timeDiv.id = 'time';
-        this.timeDiv.style.cssText = 'margin-top: 2px; position: relative; z-index: 2;';
+        this.timeDiv.style.cssText = 'margin: 10px 0; position: relative; z-index: 2;';
 
         this.hourGroup = document.createElement('div');
         this.hourGroup.className = 'time-group';
@@ -97,6 +107,7 @@ export class TomatoClock {
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
+            z-index: 3;
         `;
 
         // 创建开始按钮
@@ -112,6 +123,7 @@ export class TomatoClock {
             cursor: pointer;
             opacity: 0;
             transition: all 0.3s;
+            z-index: 3;
         `;
 
         // 创建暂停按钮
@@ -126,10 +138,6 @@ export class TomatoClock {
     private createProgressElements() {
         this.progressContainer = document.createElement('div');
         this.progressContainer.style.cssText = `
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
             width: 80%;
             height: 6px;
             background: var(--b3-theme-surface-lighter);
@@ -137,7 +145,7 @@ export class TomatoClock {
             opacity: 0;
             transition: opacity 0.3s;
             border-radius: 3px;
-            margin: 5px;
+            margin: 10px auto;
         `;
         
         this.progressBar = document.createElement('div');
@@ -148,16 +156,13 @@ export class TomatoClock {
     private createScrollingTextElements() {
         this.scrollingTextContainer = document.createElement('div');
         this.scrollingTextContainer.style.cssText = `
-            position: absolute;
-            bottom: 5px;
-            left: 50%;
-            transform: translateX(-50%);
             width: 80%;
             overflow: hidden;
             height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin: 5px auto;
         `;
 
         this.scrollingText = document.createElement('div');
@@ -509,7 +514,6 @@ export class TomatoClock {
     }
 
     private showSettingsDialog() {
-        // 实现设置对话框的显示逻辑
         const dialog = new Dialog({
             title: '番茄钟设置',
             content: `<div id="tomato-timer-settings" style="display: flex; flex-direction: column; gap: 1rem; padding: 10px;"></div>`,
@@ -517,7 +521,215 @@ export class TomatoClock {
             height: '400px',
         });
 
-        // ... 设置对话框的具体实现（与原代码相同）
+        const container = dialog.element.querySelector('#tomato-timer-settings');
+        if (container) {
+            // 创建专注时间选择区域
+            const focusTimeArea = document.createElement('div');
+            focusTimeArea.style.cssText = 'display: flex; flex-direction: column; gap: 0.5rem;';
+            
+            const focusLabel = document.createElement('div');
+            focusLabel.textContent = '专注时长(分钟)';
+            focusLabel.style.cssText = 'color: var(--b3-theme-on-background); font-size: 14px;';
+            
+            const focusButtonsContainer = document.createElement('div');
+            focusButtonsContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 0.5rem;';
+            
+            const focusTimes = [20, 25, 30, 45, 60, 90, 120, 150, 180];
+            
+            focusTimes.forEach(time => {
+                const button = document.createElement('button');
+                button.textContent = time.toString();
+                button.style.cssText = 'padding: 6px 12px; border-radius: 6px; background: var(--b3-theme-surface); color: var(--b3-theme-on-surface); border: 1px solid var(--b3-theme-surface-lighter); cursor: pointer; min-width: 45px;';
+                if (time === this.selectedFocusTime) {
+                    button.style.background = 'var(--b3-theme-primary)';
+                    button.style.color = '#fff';
+                }
+                button.addEventListener('click', () => {
+                    this.selectedFocusTime = time;
+                    focusButtonsContainer.querySelectorAll('button').forEach(btn => {
+                        btn.style.background = 'var(--b3-theme-surface)';
+                        btn.style.color = 'var(--b3-theme-on-surface)';
+                    });
+                    button.style.background = 'var(--b3-theme-primary)';
+                    button.style.color = '#fff';
+                    focusCustomInput.value = '';
+                });
+                focusButtonsContainer.appendChild(button);
+            });
+            
+            // 添加自定义输入框
+            const focusCustomInput = document.createElement('input');
+            focusCustomInput.type = 'number';
+            focusCustomInput.min = '1';
+            focusCustomInput.placeholder = '自定义';
+            focusCustomInput.style.cssText = 'width: 60px; padding: 6px 12px; border-radius: 6px; background: var(--b3-theme-surface); color: var(--b3-theme-on-surface); border: 1px solid var(--b3-theme-surface-lighter); outline: none;';
+            
+            focusCustomInput.addEventListener('input', () => {
+                const value = parseInt(focusCustomInput.value);
+                if (value > 0) {
+                    this.selectedFocusTime = value;
+                    focusButtonsContainer.querySelectorAll('button').forEach(btn => {
+                        btn.style.background = 'var(--b3-theme-surface)';
+                        btn.style.color = 'var(--b3-theme-on-surface)';
+                    });
+                }
+            });
+            
+            focusButtonsContainer.appendChild(focusCustomInput);
+
+            // 创建休息时间选择区域
+            const breakTimeArea = document.createElement('div');
+            breakTimeArea.style.cssText = 'display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;';
+            
+            const breakLabel = document.createElement('div');
+            breakLabel.textContent = '休息时长(分钟)';
+            breakLabel.style.cssText = 'color: var(--b3-theme-on-background); font-size: 14px;';
+            
+            const breakButtonsContainer = document.createElement('div');
+            breakButtonsContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 0.5rem;';
+            
+            const breakTimes = [5, 10, 15];
+            
+            breakTimes.forEach(time => {
+                const button = document.createElement('button');
+                button.textContent = time.toString();
+                button.style.cssText = 'padding: 6px 12px; border-radius: 6px; background: var(--b3-theme-surface); color: var(--b3-theme-on-surface); border: 1px solid var(--b3-theme-surface-lighter); cursor: pointer; min-width: 45px;';
+                if (time === this.selectedBreakTime) {
+                    button.style.background = 'var(--b3-theme-primary)';
+                    button.style.color = '#fff';
+                }
+                button.addEventListener('click', () => {
+                    this.selectedBreakTime = time;
+                    breakButtonsContainer.querySelectorAll('button').forEach(btn => {
+                        btn.style.background = 'var(--b3-theme-surface)';
+                        btn.style.color = 'var(--b3-theme-on-surface)';
+                    });
+                    button.style.background = 'var(--b3-theme-primary)';
+                    button.style.color = '#fff';
+                    breakCustomInput.value = '';
+                });
+                breakButtonsContainer.appendChild(button);
+            });
+
+            // 添加自定义输入框
+            const breakCustomInput = document.createElement('input');
+            breakCustomInput.type = 'number';
+            breakCustomInput.min = '1';
+            breakCustomInput.placeholder = '自定义';
+            breakCustomInput.style.cssText = 'width: 60px; padding: 6px 12px; border-radius: 6px; background: var(--b3-theme-surface); color: var(--b3-theme-on-surface); border: 1px solid var(--b3-theme-surface-lighter); outline: none;';
+            
+            breakCustomInput.addEventListener('input', () => {
+                const value = parseInt(breakCustomInput.value);
+                if (value > 0) {
+                    this.selectedBreakTime = value;
+                    breakButtonsContainer.querySelectorAll('button').forEach(btn => {
+                        btn.style.background = 'var(--b3-theme-surface)';
+                        btn.style.color = 'var(--b3-theme-on-surface)';
+                    });
+                }
+            });
+            
+            breakButtonsContainer.appendChild(breakCustomInput);
+
+            // 创建通知开关
+            const notificationArea = document.createElement('div');
+            notificationArea.style.cssText = 'display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;';
+            
+            const notificationLabel = document.createElement('span');
+            notificationLabel.textContent = '消息通知';
+            notificationLabel.style.cssText = 'color: var(--b3-theme-on-background); font-size: 14px;';
+            
+            const notificationSwitch = document.createElement('label');
+            notificationSwitch.style.cssText = 'position: relative; display: inline-block; width: 40px; height: 20px;';
+            
+            const notificationSlider = document.createElement('span');
+            notificationSlider.style.cssText = `
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: ${this.notificationCheckbox.checked ? 'var(--b3-theme-primary)' : '#ccc'};
+                transition: .4s;
+                border-radius: 20px;
+            `;
+            notificationSlider.innerHTML = `
+                <span style="position: absolute; content: ''; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; transform: ${this.notificationCheckbox.checked ? 'translateX(20px)' : 'translateX(0)'};"></span>
+            `;
+            
+            this.notificationCheckbox.addEventListener('change', () => {
+                if (this.notificationCheckbox.checked) {
+                    notificationSlider.style.backgroundColor = 'var(--b3-theme-primary)';
+                    notificationSlider.querySelector('span').style.transform = 'translateX(20px)';
+                } else {
+                    notificationSlider.style.backgroundColor = '#ccc';
+                    notificationSlider.querySelector('span').style.transform = 'translateX(0)';
+                }
+            });
+            
+            notificationSwitch.append(this.notificationCheckbox, notificationSlider);
+            notificationArea.append(notificationLabel, notificationSwitch);
+
+            // 创建按钮区域
+            const buttonArea = document.createElement('div');
+            buttonArea.style.cssText = 'display: flex; justify-content: center; gap: 1rem; margin-top: 1rem;';
+
+            const confirmButton = document.createElement('button');
+            confirmButton.textContent = '确定';
+            confirmButton.style.cssText = 'padding: 8px 16px; border-radius: 4px; background: var(--b3-theme-primary); color: white; border: none; cursor: pointer;';
+
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = '取消';
+            cancelButton.style.cssText = 'padding: 8px 16px; border-radius: 4px; background: var(--b3-theme-surface); color: var(--b3-theme-on-surface); border: 1px solid var(--b3-theme-surface-lighter); cursor: pointer;';
+
+            buttonArea.append(cancelButton, confirmButton);
+
+            // 绑定按钮事件
+            confirmButton.addEventListener('click', () => {
+                const minutes = this.isBreakTime ? this.selectedBreakTime : this.selectedFocusTime;
+                this.countdownTime = minutes * 60;
+                
+                if (this.countdownTime > 0) {
+                    this.totalTime = this.countdownTime;
+                    this.isCountingDown = true;
+                    this.isPaused = false;
+                    this.startButton.style.display = 'none';
+                    this.startButton.style.opacity = '0';
+                    
+                    this.hasHours = false;
+                    this.hourGroup.style.display = 'none';
+                    this.secondGroup.style.display = 'flex';  // 在倒计时时始终显示秒
+
+                    this.timeDiv.style.display = 'flex';
+                    this.progressBar.style.width = '0%';
+                    this.progressContainer.style.opacity = '1';
+                    
+                    // 更新标题显示当前是工作还是休息时间
+                    const title = this.isBreakTime ? '休息时间' : '专注时间';
+                    const titleElement = this.container.closest('.dock')?.querySelector('.dock__title');
+                    if (titleElement) {
+                        titleElement.textContent = title;
+                    }
+                }
+                dialog.destroy();
+            });
+
+            cancelButton.addEventListener('click', () => {
+                dialog.destroy();
+            });
+
+            // 组装所有元素
+            focusTimeArea.appendChild(focusLabel);
+            focusTimeArea.appendChild(focusButtonsContainer);
+            breakTimeArea.appendChild(breakLabel);
+            breakTimeArea.appendChild(breakButtonsContainer);
+            
+            container.appendChild(focusTimeArea);
+            container.appendChild(breakTimeArea);
+            container.appendChild(notificationArea);
+            container.appendChild(buttonArea);
+        }
     }
 
     private showSettingsMenu(e: MouseEvent) {
@@ -525,7 +737,247 @@ export class TomatoClock {
         const rect = this.settingsButton.getBoundingClientRect();
         const menu = new Menu("settingsMenu");
 
-        // ... 设置菜单的具体实现（与原代码相同）
+        // 添加显示秒选项
+        menu.addItem({
+            icon: this.showSecondsCheckbox?.checked ? "iconSelect" : "",
+            label: "显示秒",
+            click: () => {
+                if (this.showSecondsCheckbox) {
+                    this.showSecondsCheckbox.checked = !this.showSecondsCheckbox.checked;
+                    if (!this.isCountingDown) {
+                        this.secondGroup.style.display = this.showSecondsCheckbox.checked ? 'flex' : 'none';
+                    }
+                }
+            }
+        });
+
+        // 添加通知开关选项 
+        menu.addItem({
+            icon: this.notificationCheckbox?.checked ? "iconSelect" : "",
+            label: "消息通知",
+            click: () => {
+                if (this.notificationCheckbox) {
+                    this.notificationCheckbox.checked = !this.notificationCheckbox.checked;
+                }
+            }
+        });
+
+        menu.addSeparator();
+
+        // 添加时钟样式设置选项
+        menu.addItem({
+            icon: "iconEdit",
+            label: "时钟样式设置",
+            click: () => {
+                // 获取当前的样式值
+                let currentCardColor = '#1e1e1e';
+                let currentNumberColor = '#ffffff';
+                let currentShowShadow = false;
+
+                // 尝试从现有的自定义样式中获取当前值
+                const customStyle = document.getElementById('clock-custom-style');
+                if (customStyle) {
+                    const styleContent = customStyle.textContent || '';
+                    // 提取卡片颜色
+                    const cardColorMatch = styleContent.match(/background-color: (#[a-fA-F0-9]{6})/);
+                    if (cardColorMatch) {
+                        currentCardColor = cardColorMatch[1];
+                    }
+                    // 提取数字颜色
+                    const numberColorMatch = styleContent.match(/::before.*?color: (#[a-fA-F0-9]{6})/s);
+                    if (numberColorMatch) {
+                        currentNumberColor = numberColorMatch[1];
+                    }
+                    // 检查是否有阴影
+                    currentShowShadow = styleContent.includes('box-shadow: 0 4px 8px');
+                } else {
+                    // 如果没有自定义样式，从DOM中获取当前值
+                    const col = document.querySelector('.col') as HTMLElement;
+                    if (col) {
+                        const computedCol = getComputedStyle(col);
+                        // 将rgb颜色转换为hex
+                        const rgbToHex = (rgb: string) => {
+                            const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                            if (match) {
+                                const hex = (x: string) => ("0" + parseInt(x).toString(16)).slice(-2);
+                                return "#" + hex(match[1]) + hex(match[2]) + hex(match[3]);
+                            }
+                            return rgb;
+                        };
+                        currentCardColor = rgbToHex(computedCol.backgroundColor);
+                        currentShowShadow = computedCol.boxShadow !== 'none';
+
+                        const beforeStyle = window.getComputedStyle(col.querySelector('.curr') as Element, ':before');
+                        if (beforeStyle) {
+                            currentNumberColor = rgbToHex(beforeStyle.color);
+                        }
+                    }
+                }
+
+                const dialog = new Dialog({
+                    title: "时钟样式设置",
+                    content: `
+                        <div class="b3-dialog__content" style="display: flex; flex-direction: column; gap: 1rem; padding: 20px;">
+                            <div class="fn__flex-column">
+                                <div class="fn__flex" style="align-items: center; margin-bottom: 10px;">
+                                    <label class="fn__flex" style="width: 80px;">卡片颜色</label>
+                                    <input type="color" id="card-color" class="b3-text-field" 
+                                        value="${currentCardColor}"
+                                        style="width: 80px; height: 32px; padding: 2px;">
+                                </div>
+                                <div class="fn__flex" style="align-items: center;">
+                                    <label class="fn__flex" style="width: 80px;">数字颜色</label>
+                                    <input type="color" id="number-color" class="b3-text-field"
+                                        value="${currentNumberColor}"
+                                        style="width: 80px; height: 32px; padding: 2px;">
+                                </div>
+                                <div class="fn__flex" style="align-items: center; margin-top: 10px;">
+                                    <label class="fn__flex" style="width: 80px;">显示阴影</label>
+                                    <input class="b3-switch fn__flex-center" type="checkbox" id="show-shadow" ${currentShowShadow ? 'checked' : ''}>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    width: "320px",
+                });
+
+                const saveSettings = () => {
+                    const cardColor = (dialog.element.querySelector('#card-color') as HTMLInputElement).value;
+                    const numberColor = (dialog.element.querySelector('#number-color') as HTMLInputElement).value;
+                    const showShadow = (dialog.element.querySelector('#show-shadow') as HTMLInputElement).checked;
+
+                    // 更新样式
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        .col {
+                            background-color: ${cardColor} !important;
+                            box-shadow: ${showShadow ? '0 4px 8px rgba(0, 0, 0, 0.2)' : 'none'} !important;
+                        }
+                        .curr, .next {
+                            color: ${numberColor} !important;
+                            background-color: ${cardColor} !important;
+                        }
+                        .curr::before, .next::before {
+                            background-color: ${cardColor} !important;
+                            color: ${numberColor} !important;
+                        }
+                        .flip .curr::before, .flip .next::before {
+                            background-color: ${cardColor} !important;
+                            color: ${numberColor} !important;
+                        }
+                    `;
+                    
+                    // 移除旧的样式（如果存在）
+                    const oldStyle = document.getElementById('clock-custom-style');
+                    if (oldStyle) {
+                        oldStyle.remove();
+                    }
+                    
+                    // 添加新样式
+                    style.id = 'clock-custom-style';
+                    document.head.appendChild(style);
+
+                    dialog.destroy();
+                };
+
+                // 添加确定和取消按钮
+                const btns = document.createElement("div");
+                btns.className = "fn__flex b3-dialog__action";
+                btns.innerHTML = `
+                    <button class="b3-button b3-button--cancel">取消</button>
+                    <div class="fn__space"></div>
+                    <button class="b3-button b3-button--text">确定</button>
+                `;
+                dialog.element.querySelector('.b3-dialog__content')?.appendChild(btns);
+
+                // 绑定按钮事件
+                btns.querySelector('.b3-button--cancel')?.addEventListener('click', () => {
+                    dialog.destroy();
+                });
+                btns.querySelector('.b3-button--text')?.addEventListener('click', saveSettings);
+            }
+        });
+
+        menu.addSeparator();
+
+        // 添加滚动文字设置选项
+        menu.addItem({
+            icon: "iconEdit",
+            label: "滚动文字设置",
+            click: () => {
+                const dialog = new Dialog({
+                    title: "滚动文字设置",
+                    content: `
+                        <div class="b3-dialog__content" style="display: flex; flex-direction: column; gap: 1rem; padding: 20px;">
+                            <div class="fn__flex-column">
+                                <label class="fn__flex" style="margin-bottom: 4px;">文字内容</label>
+                                <textarea class="b3-text-field fn__block" id="scrolling-text-content" rows="3" style="resize: vertical;">${this.scrollingText.textContent || ''}</textarea>
+                            </div>
+                            <div class="fn__flex-column" style="gap: 0.5rem;">
+                                <div class="fn__flex" style="align-items: center;">
+                                    <label class="fn__flex" style="width: 80px;">字体大小</label>
+                                    <input type="number" min="8" max="24" value="${parseInt(this.scrollingText.style.fontSize) || 12}" 
+                                        class="b3-text-field" id="scrolling-text-size" style="width: 80px;">
+                                    <span style="margin-left: 4px;">px</span>
+                                </div>
+                                <div class="fn__flex" style="align-items: center;">
+                                    <label class="fn__flex" style="width: 80px;">字体颜色</label>
+                                    <input type="color" value="${this.scrollingText.style.color || 'var(--b3-theme-primary)'}" 
+                                        class="b3-text-field" id="scrolling-text-color" style="width: 80px; height: 32px; padding: 2px;">
+                                </div>
+                            </div>
+                            <div class="fn__flex" style="align-items: center;">
+                                <label class="fn__flex" style="margin-right: 8px;">
+                                    <input type="checkbox" class="b3-switch fn__flex-center" id="scrolling-text-bold" 
+                                        ${this.scrollingText.style.fontWeight === 'bold' ? 'checked' : ''}>
+                                    <span style="margin-left: 8px;">文字加粗</span>
+                                </label>
+                            </div>
+                        </div>
+                    `,
+                    width: "520px",
+                });
+
+                const saveSettings = () => {
+                    const content = (dialog.element.querySelector('#scrolling-text-content') as HTMLTextAreaElement).value;
+                    const fontSize = (dialog.element.querySelector('#scrolling-text-size') as HTMLInputElement).value;
+                    const color = (dialog.element.querySelector('#scrolling-text-color') as HTMLInputElement).value;
+                    const isBold = (dialog.element.querySelector('#scrolling-text-bold') as HTMLInputElement).checked;
+
+                    this.scrollingText.textContent = content;
+                    this.scrollingText.style.fontSize = `${fontSize}px`;
+                    this.scrollingText.style.color = color;
+                    this.scrollingText.style.fontWeight = isBold ? 'bold' : 'normal';
+
+                    // 根据内容是否为空来显示或隐藏滚动文字容器
+                    this.scrollingTextContainer.style.display = content.trim() ? 'flex' : 'none';
+
+                    dialog.destroy();
+                };
+
+                // 添加确定和取消按钮
+                const btns = document.createElement("div");
+                btns.className = "fn__flex b3-dialog__action";
+                btns.innerHTML = `
+                    <button class="b3-button b3-button--cancel">取消</button>
+                    <div class="fn__space"></div>
+                    <button class="b3-button b3-button--text">确定</button>
+                `;
+                dialog.element.querySelector('.b3-dialog__content')?.appendChild(btns);
+
+                // 绑定按钮事件
+                btns.querySelector('.b3-button--cancel')?.addEventListener('click', () => {
+                    dialog.destroy();
+                });
+                btns.querySelector('.b3-button--text')?.addEventListener('click', saveSettings);
+            }
+        });
+
+        menu.open({
+            x: rect.right,
+            y: rect.bottom,
+            isLeft: true,
+        });
     }
 
     private run() {

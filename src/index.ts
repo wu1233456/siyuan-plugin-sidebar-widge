@@ -1,5 +1,8 @@
 import {
     Plugin,
+    showMessage,
+    Dialog,
+    Menu,
     getFrontend,
     IModel,
 } from "siyuan";
@@ -60,7 +63,27 @@ export default class PluginSample extends Plugin {
             },
             type: DOCK_TYPE,
             init: (dock) => {
-                this.tomatoClock = new TomatoClock(dock.element);
+                // 创建卡片容器
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.cssText = `
+                    background: var(--b3-theme-surface);
+                    border-radius: 16px;
+                    // box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+                    margin: 5px 5px;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                    border: 1px solid var(--b3-theme-surface-lighter);
+                    position: relative;
+                `;
+
+                // 设置dock容器的内边距，确保有足够的空间
+                dock.element.style.padding = '0';
+                dock.element.style.boxSizing = 'border-box';
+
+                dock.element.appendChild(card);
+                
+                this.tomatoClock = new TomatoClock(card);
             }
         });
     }
