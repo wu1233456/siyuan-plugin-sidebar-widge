@@ -15,6 +15,7 @@ import { Calendar } from "./components/calendar/calendar";
 import { TodoList } from "./components/todo-list/todo-list";
 import { Bookmark } from "./components/bookmark/bookmark";
 import { DailyQuote } from "./components/daily-quote/daily-quote";
+import { Muyu } from "./components/muyu/muyu";
 
 const STORAGE_NAME = "menu-config";
 const TAB_TYPE = "custom_tab";
@@ -32,6 +33,7 @@ export default class PluginSample extends Plugin {
     private todoList: TodoList;
     private bookmark: Bookmark;
     private dailyQuote: DailyQuote;
+    private muyu: Muyu;
 
     async onload() {
         this.data[STORAGE_NAME] = { readonlyText: "Readonly" };
@@ -71,6 +73,9 @@ export default class PluginSample extends Plugin {
 </symbol>
 <symbol id="iconBookmark" viewBox="0 0 24 24">
     <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+</symbol>
+<symbol id="iconMuyu" viewBox="0 0 1024 1024">
+<path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64z m0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372z"></path>
 </symbol>`);
 
         // 创建行容器
@@ -209,6 +214,17 @@ export default class PluginSample extends Plugin {
                 quoteCard.style.cssText = cardStyle;
                 quoteRow.appendChild(quoteCard);
                 this.dailyQuote = new DailyQuote(quoteCard);
+
+                // 创建第九行并添加木鱼卡片
+                const muyuRow = createRow();
+                dock.element.appendChild(muyuRow);
+                const muyuCard = document.createElement('div');
+                muyuCard.className = 'card';
+                muyuCard.setAttribute('draggable', 'true');
+                muyuCard.dataset.cardType = 'muyu';
+                muyuCard.style.cssText = cardStyle;
+                muyuRow.appendChild(muyuCard);
+                this.muyu = new Muyu(muyuCard);
 
                 // 添加拖拽相关事件监听
                 const cards = dock.element.getElementsByClassName('card');
