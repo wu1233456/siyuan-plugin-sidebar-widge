@@ -11,6 +11,7 @@ import { TomatoClock } from "./components/tomato-clock/tomata-clock";
 import { MemorialDay } from "./components/MemorialDay/memorial-day";
 import { HabitTracker } from "./components/habit-tracker/habit-tracker";
 import { StickyNote } from "./components/sticky-note/sticky-note";
+import { Calendar } from "./components/calendar/calendar";
 
 const STORAGE_NAME = "menu-config";
 const TAB_TYPE = "custom_tab";
@@ -24,6 +25,7 @@ export default class PluginSample extends Plugin {
     private memorialDay: MemorialDay;
     private habitTracker: HabitTracker;
     private stickyNote: StickyNote;
+    private calendar: Calendar;
 
     async onload() {
         this.data[STORAGE_NAME] = { readonlyText: "Readonly" };
@@ -54,6 +56,9 @@ export default class PluginSample extends Plugin {
 </symbol>
 <symbol id="iconEdit" viewBox="0 0 24 24">
     <path d="M19.045 3.875c-1.23-1.34-2.76-2.01-4.38-1.98-1.62.03-3.12.72-4.44 1.92-5.76 1.2-1.2 2.76-1.8 4.44-1.8 1.62.03 3.15.72 4.5 1.92 5.7 1.2 1.2 2.76 1.8 4.44 1.8zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6-3.6zM3.48 21c-.48.48-.48 1.2 0 1.68l.96.96c.48.48 1.2.48 1.68 0l.96-.96c.48-.48.48-1.2 0-1.68l-.96-.96zM12 12c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6-3.6z"/>
+</symbol>
+<symbol id="iconCalendar" viewBox="0 0 1024 1024">
+    <path d="M896 128h-96v64c0 35.3-28.7 64-64 64s-64-28.7-64-64v-64H352v64c0 35.3-28.7 64-64 64s-64-28.7-64-64v-64h-96c-35.3 0-64 28.7-64 64v640c0 35.3 28.7 64 64 64h768c35.3 0 64-28.7 64-64V192c0-35.3-28.7-64-64-64z m0 704H128V384h768v448zM288 64c-17.7 0-32 14.3-32 32v128c0 17.7 14.3 32 32 32s32-14.3 32-32V96c0-17.7-14.3-32-32-32z m448 0c-17.7 0-32 14.3-32 32v128c0 17.7 14.3 32 32 32s32-14.3 32-32V96c0-17.7-14.3-32-32-32z"></path>
 </symbol>`);
 
         // 创建行容器
@@ -148,6 +153,17 @@ export default class PluginSample extends Plugin {
                 stickyCard.style.cssText = cardStyle;
                 stickyRow.appendChild(stickyCard);
                 this.stickyNote = new StickyNote(stickyCard);
+
+                // 创建第五行并添加日历卡片
+                const calendarRow = createRow();
+                dock.element.appendChild(calendarRow);
+                const calendarCard = document.createElement('div');
+                calendarCard.className = 'card';
+                calendarCard.setAttribute('draggable', 'true');
+                calendarCard.dataset.cardType = 'calendar';
+                calendarCard.style.cssText = cardStyle;
+                calendarRow.appendChild(calendarCard);
+                this.calendar = new Calendar(calendarCard);
 
                 // 添加拖拽相关事件监听
                 const cards = dock.element.getElementsByClassName('card');
