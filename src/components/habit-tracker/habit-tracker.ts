@@ -1,3 +1,5 @@
+import { Dialog } from "siyuan";
+
 export class HabitTracker {
     private container: HTMLElement;
     private progressRing: SVGElement;
@@ -6,10 +8,20 @@ export class HabitTracker {
     private title: string = "每天8杯水";
     private progressText: HTMLElement;
     private buttonsContainer: HTMLElement;
+    private titleElement: HTMLElement;
 
     constructor(container: HTMLElement) {
         this.container = container;
         this.init();
+        
+        // 添加点击事件监听
+        this.container.addEventListener('click', (e) => {
+            // 如果点击的是按钮，不触发设置对话框
+            if ((e.target as HTMLElement).closest('.habit-buttons')) {
+                return;
+            }
+            this.showSettingsDialog();
+        });
     }
 
     private init() {
@@ -56,6 +68,9 @@ export class HabitTracker {
 
         this.buttonsContainer.appendChild(resetButton);
         this.buttonsContainer.appendChild(addButton);
+
+        // 添加类名以便识别按钮容器
+        this.buttonsContainer.className = 'habit-buttons';
 
         // 创建SVG进度环
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -109,13 +124,13 @@ export class HabitTracker {
         this.updateProgressText();
 
         // 标题文本
-        const titleText = document.createElement('div');
-        titleText.style.cssText = `
+        this.titleElement = document.createElement('div');
+        this.titleElement.style.cssText = `
             font-size: 14px;
             color: var(--b3-theme-on-surface);
             margin-top: 4px;
         `;
-        titleText.textContent = this.title;
+        this.titleElement.textContent = this.title;
 
         // 组装SVG
         svg.appendChild(bgCircle);
@@ -123,7 +138,7 @@ export class HabitTracker {
 
         // 组装文本容器
         textContainer.appendChild(progressText);
-        textContainer.appendChild(titleText);
+        textContainer.appendChild(this.titleElement);
 
         // 将所有元素添加到内容容器
         const svgContainer = document.createElement('div');
@@ -218,9 +233,122 @@ export class HabitTracker {
     // 公共方法：设置标题
     public setTitle(title: string) {
         this.title = title;
-        const titleElement = this.container.querySelector('div:last-child');
-        if (titleElement) {
-            titleElement.textContent = title;
+        if (this.titleElement) {
+            this.titleElement.textContent = title;
         }
+    }
+
+    private showSettingsDialog() {
+        const dialog = new Dialog({
+            title: "习惯设置",
+            content: `
+                <div class="b3-dialog__content" style="padding: 20px;">
+                    <div class="b3-dialog__item" style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 8px; color: var(--b3-theme-on-surface);">习惯名称</label>
+                        <input class="b3-text-field" type="text" value="${this.title}" style="
+                            width: 100%;
+                            padding: 8px 12px;
+                            border-radius: 6px;
+                            border: 1px solid var(--b3-theme-surface-lighter);
+                            background: var(--b3-theme-surface);
+                            transition: all 0.3s ease;
+                        ">
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                        <div class="b3-dialog__item" style="flex: 1;">
+                            <label style="display: block; margin-bottom: 8px; color: var(--b3-theme-on-surface);">目标数量</label>
+                            <input class="b3-text-field" type="number" min="1" value="${this.targetValue}" style="
+                                width: 100%;
+                                padding: 8px 12px;
+                                border-radius: 6px;
+                                border: 1px solid var(--b3-theme-surface-lighter);
+                                background: var(--b3-theme-surface);
+                                transition: all 0.3s ease;
+                            ">
+                        </div>
+                        <div class="b3-dialog__item" style="flex: 1;">
+                            <label style="display: block; margin-bottom: 8px; color: var(--b3-theme-on-surface);">当前进度</label>
+                            <input class="b3-text-field" type="number" min="0" value="${this.currentValue}" style="
+                                width: 100%;
+                                padding: 8px 12px;
+                                border-radius: 6px;
+                                border: 1px solid var(--b3-theme-surface-lighter);
+                                background: var(--b3-theme-surface);
+                                transition: all 0.3s ease;
+                            ">
+                        </div>
+                    </div>
+                    <div class="b3-dialog__item" style="margin-bottom: 16px;">
+                        <label class="fn__flex" style="align-items: center; user-select: none; cursor: pointer;">
+                            <input class="b3-switch fn__flex-center" type="checkbox" checked>
+                            <span style="margin-left: 8px; color: var(--b3-theme-on-surface);">每天零点重置进度</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="b3-dialog__action" style="
+                    padding: 16px;
+                    border-top: 1px solid var(--b3-theme-surface-lighter);
+                    display: flex;
+                    justify-content: flex-end;
+                    gap: 8px;
+                ">
+                    <button class="b3-button b3-button--cancel" style="
+                        padding: 8px 16px;
+                        border-radius: 6px;
+                        font-size: 14px;
+                    ">取消</button>
+                    <button class="b3-button b3-button--text" style="
+                        padding: 8px 16px;
+                        border-radius: 6px;
+                        font-size: 14px;
+                        background: var(--b3-theme-primary);
+                        color: white;
+                    ">保存</button>
+                </div>
+            `,
+            width: "400px",
+        });
+
+        // 添加输入框焦点样式
+        const inputs = dialog.element.querySelectorAll('.b3-text-field') as NodeListOf<HTMLElement>;
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                input.style.borderColor = 'var(--b3-theme-primary)';
+                input.style.boxShadow = '0 0 0 2px var(--b3-theme-primary-lighter)';
+            });
+            input.addEventListener('blur', () => {
+                input.style.borderColor = 'var(--b3-theme-surface-lighter)';
+                input.style.boxShadow = 'none';
+            });
+        });
+
+        const saveButton = dialog.element.querySelector('.b3-button--text') as HTMLButtonElement;
+        const cancelButton = dialog.element.querySelector('.b3-button--cancel') as HTMLButtonElement;
+
+        // 添加按钮悬停效果
+        saveButton.addEventListener('mouseover', () => {
+            saveButton.style.opacity = '0.9';
+        });
+        saveButton.addEventListener('mouseout', () => {
+            saveButton.style.opacity = '1';
+        });
+
+        saveButton.addEventListener("click", () => {
+            const titleInput = dialog.element.querySelector('input[type="text"]') as HTMLInputElement;
+            const targetInput = dialog.element.querySelector('input[type="number"]:first-of-type') as HTMLInputElement;
+            const currentInput = dialog.element.querySelector('input[type="number"]:last-of-type') as HTMLInputElement;
+            const resetSwitch = dialog.element.querySelector('.b3-switch') as HTMLInputElement;
+
+            this.setTitle(titleInput.value);
+            this.setTarget(parseInt(targetInput.value));
+            this.setCurrentValue(parseInt(currentInput.value));
+            // TODO: 处理每日重置的逻辑
+
+            dialog.destroy();
+        });
+
+        cancelButton.addEventListener("click", () => {
+            dialog.destroy();
+        });
     }
 } 
