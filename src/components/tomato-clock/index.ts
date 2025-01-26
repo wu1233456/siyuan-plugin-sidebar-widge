@@ -59,12 +59,39 @@ export class TomatoClock {
         this.updateDisplay();
        
         // 添加到容器
-        this.container.appendChild(this.settingsButton);
         this.container.appendChild(this.timeDiv);
         this.container.appendChild(this.progressContainer);
         this.container.appendChild(this.buttonContainer);
-        this.container.appendChild(this.startButton);
         this.container.appendChild(this.scrollingTextContainer);
+
+        // 添加点击事件监听
+        this.container.addEventListener('click', (e) => {
+            // 如果点击的是按钮，不触发设置对话框
+            if ((e.target as HTMLElement).closest('.tomato-buttons') || 
+                (e.target as HTMLElement).closest('button')) {
+                return;
+            }
+            // 如果在番茄钟状态，不触发设置对话框
+            if (this.isCountingDown) {
+                return;
+            }
+            this.showSettingsMenu();
+        });
+
+        // 添加鼠标悬停效果
+        this.container.addEventListener('mouseenter', () => {
+            if (this.isCountingDown) {
+                this.buttonContainer.style.opacity = '1';
+                this.buttonContainer.style.pointerEvents = 'auto';
+            } else {
+                this.settingsButton.style.opacity = '1';
+            }
+        });
+        this.container.addEventListener('mouseleave', () => {
+            this.settingsButton.style.opacity = '0';
+            this.buttonContainer.style.opacity = '0';
+            this.buttonContainer.style.pointerEvents = 'none';
+        });
     }
 
     private createTimeElements() {
@@ -100,39 +127,56 @@ export class TomatoClock {
         this.buttonContainer = document.createElement('div');
         this.buttonContainer.style.cssText = `
             position: absolute;
-            top: 5px;
-            left: 30px;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
-            gap: 5px;
+            gap: 12px;
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
             z-index: 3;
         `;
 
-        // 创建开始按钮
-        this.startButton = this.createButton('iconTime');
-        this.startButton.style.cssText = `
-            position: absolute;
-            top: 5px;
-            left: 30px;
-            background: transparent;
-            border: none;
-            border-radius: 4px;
-            padding: 4px;
-            cursor: pointer;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 3;
-        `;
-
         // 创建暂停按钮
         this.pauseButton = this.createButton('iconPause');
+        this.styleControlButton(this.pauseButton);
         
         // 创建停止按钮
         this.stopButton = this.createButton('iconStop');
+        this.styleControlButton(this.stopButton);
 
         this.buttonContainer.append(this.pauseButton, this.stopButton);
+    }
+
+    private styleControlButton(button: HTMLButtonElement) {
+        button.style.cssText = `
+            background: var(--b3-theme-background);
+            border: 1px solid var(--b3-theme-surface-lighter);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        `;
+
+        const icon = button.querySelector('.icon') as SVGElement;
+        
+        // 添加悬停效果
+        button.addEventListener('mouseenter', () => {
+            button.style.background = 'var(--b3-theme-primary)';
+            button.style.transform = 'scale(1.1)';
+            icon.style.fill = '#fff';
+        });
+        button.addEventListener('mouseleave', () => {
+            button.style.background = 'var(--b3-theme-background)';
+            button.style.transform = 'scale(1)';
+            icon.style.fill = 'var(--b3-theme-primary)';
+        });
     }
 
     private createProgressElements() {
@@ -181,20 +225,45 @@ export class TomatoClock {
     }
 
     private createSettingsButton() {
-        this.settingsButton = this.createButton('iconSettings');
+        this.settingsButton = this.createButton('iconTime');
         this.settingsButton.style.cssText = `
             position: absolute;
-            top: 5px;
-            left: 5px;
-            background: transparent;
-            border: none;
-            border-radius: 4px;
-            padding: 4px;
+            top: 65%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--b3-theme-background);
+            border: 1px solid var(--b3-theme-surface-lighter);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
             opacity: 0;
             transition: all 0.3s;
             z-index: 4;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         `;
+
+        this.settingsButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.showSettingsDialog();
+        });
+
+        // 添加悬停效果
+        this.settingsButton.addEventListener('mouseenter', () => {
+            this.settingsButton.style.background = 'var(--b3-theme-primary)';
+            this.settingsButton.style.transform = 'translate(-50%, -50%) scale(1.1)';
+            (this.settingsButton.querySelector('.icon') as HTMLElement).style.fill = '#fff';
+        });
+        this.settingsButton.addEventListener('mouseleave', () => {
+            this.settingsButton.style.background = 'var(--b3-theme-background)';
+            this.settingsButton.style.transform = 'translate(-50%, -50%)';
+            (this.settingsButton.querySelector('.icon') as HTMLElement).style.fill = 'var(--b3-theme-primary)';
+        });
+
+        this.container.appendChild(this.settingsButton);
     }
 
     private createButton(iconName: string): HTMLButtonElement {
@@ -208,13 +277,6 @@ export class TomatoClock {
             cursor: pointer;
             transition: all 0.3s;
         `;
-        
-        button.addEventListener('mouseenter', () => {
-            button.style.background = 'var(--b3-theme-surface)';
-        });
-        button.addEventListener('mouseleave', () => {
-            button.style.background = 'transparent';
-        });
         
         return button;
     }
@@ -347,28 +409,9 @@ export class TomatoClock {
     }
 
     private initEvents() {
-        // 容器事件
-        this.container.addEventListener('mouseenter', () => {
-            this.settingsButton.style.opacity = '1';
-            this.startButton.style.opacity = '1';
-            if (this.isCountingDown) {
-                this.buttonContainer.style.opacity = '1';
-                this.buttonContainer.style.pointerEvents = 'auto';
-            }
-        });
-
-        this.container.addEventListener('mouseleave', () => {
-            this.settingsButton.style.opacity = '0';
-            this.startButton.style.opacity = '0';
-            this.buttonContainer.style.opacity = '0';
-            this.buttonContainer.style.pointerEvents = 'none';
-        });
-
         // 按钮事件
-        this.startButton.addEventListener('click', () => this.showSettingsDialog());
         this.pauseButton.addEventListener('click', () => this.handlePause());
         this.stopButton.addEventListener('click', () => this.handleStop());
-        this.settingsButton.addEventListener('click', (e) => this.showSettingsMenu(e));
     }
 
     private createCol(parent: HTMLElement) {
@@ -495,8 +538,8 @@ export class TomatoClock {
         this.isCountingDown = false;
         this.isPaused = false;
         this.countdownTime = 0;
-        this.startButton.style.display = 'block';
-        this.startButton.style.opacity = '1';
+        this.settingsButton.style.display = 'block';
+        this.settingsButton.style.opacity = '0';
         this.hasHours = true;
         this.hourGroup.style.display = 'flex';
         this.secondGroup.style.display = this.showSecondsCheckbox?.checked ? 'flex' : 'none';
@@ -695,7 +738,7 @@ export class TomatoClock {
                     this.isCountingDown = true;
                     this.isPaused = false;
                     this.startButton.style.display = 'none';
-                    this.startButton.style.opacity = '0';
+                    this.settingsButton.style.display = 'none';
                     
                     this.hasHours = false;
                     this.hourGroup.style.display = 'none';
@@ -732,199 +775,66 @@ export class TomatoClock {
         }
     }
 
-    private showSettingsMenu(e: MouseEvent) {
-        e.stopPropagation();
-        const rect = this.settingsButton.getBoundingClientRect();
-        const menu = new Menu("settingsMenu");
+    private showSettingsMenu() {
+        const dialog = new Dialog({
+            title: "番茄钟设置",
+            content: `
+                <div class="b3-dialog__content" style="display: flex; flex-direction: column; gap: 1.5rem; padding: 20px;">
+                    <div class="fn__flex-column" style="gap: 1rem;">
+                        <div class="fn__flex" style="align-items: center;">
+                            <label class="fn__flex" style="margin-right: 8px;">
+                                <input type="checkbox" class="b3-switch fn__flex-center" id="show-seconds" ${this.showSecondsCheckbox?.checked ? 'checked' : ''}>
+                                <span style="margin-left: 8px;">显示秒</span>
+                            </label>
+                        </div>
+                        <div class="fn__flex" style="align-items: center;">
+                            <label class="fn__flex" style="margin-right: 8px;">
+                                <input type="checkbox" class="b3-switch fn__flex-center" id="show-notification" ${this.notificationCheckbox?.checked ? 'checked' : ''}>
+                                <span style="margin-left: 8px;">消息通知</span>
+                            </label>
+                        </div>
+                    </div>
 
-        // 添加显示秒选项
-        menu.addItem({
-            icon: this.showSecondsCheckbox?.checked ? "iconSelect" : "",
-            label: "显示秒",
-            click: () => {
-                if (this.showSecondsCheckbox) {
-                    this.showSecondsCheckbox.checked = !this.showSecondsCheckbox.checked;
-                    if (!this.isCountingDown) {
-                        this.secondGroup.style.display = this.showSecondsCheckbox.checked ? 'flex' : 'none';
-                    }
-                }
-            }
-        });
-
-        // 添加通知开关选项 
-        menu.addItem({
-            icon: this.notificationCheckbox?.checked ? "iconSelect" : "",
-            label: "消息通知",
-            click: () => {
-                if (this.notificationCheckbox) {
-                    this.notificationCheckbox.checked = !this.notificationCheckbox.checked;
-                }
-            }
-        });
-
-        menu.addSeparator();
-
-        // 添加时钟样式设置选项
-        menu.addItem({
-            icon: "iconEdit",
-            label: "时钟样式设置",
-            click: () => {
-                // 获取当前的样式值
-                let currentCardColor = '#1e1e1e';
-                let currentNumberColor = '#ffffff';
-                let currentShowShadow = false;
-
-                // 尝试从现有的自定义样式中获取当前值
-                const customStyle = document.getElementById('clock-custom-style');
-                if (customStyle) {
-                    const styleContent = customStyle.textContent || '';
-                    // 提取卡片颜色
-                    const cardColorMatch = styleContent.match(/background-color: (#[a-fA-F0-9]{6})/);
-                    if (cardColorMatch) {
-                        currentCardColor = cardColorMatch[1];
-                    }
-                    // 提取数字颜色
-                    const numberColorMatch = styleContent.match(/::before.*?color: (#[a-fA-F0-9]{6})/s);
-                    if (numberColorMatch) {
-                        currentNumberColor = numberColorMatch[1];
-                    }
-                    // 检查是否有阴影
-                    currentShowShadow = styleContent.includes('box-shadow: 0 4px 8px');
-                } else {
-                    // 如果没有自定义样式，从DOM中获取当前值
-                    const col = document.querySelector('.col') as HTMLElement;
-                    if (col) {
-                        const computedCol = getComputedStyle(col);
-                        // 将rgb颜色转换为hex
-                        const rgbToHex = (rgb: string) => {
-                            const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-                            if (match) {
-                                const hex = (x: string) => ("0" + parseInt(x).toString(16)).slice(-2);
-                                return "#" + hex(match[1]) + hex(match[2]) + hex(match[3]);
-                            }
-                            return rgb;
-                        };
-                        currentCardColor = rgbToHex(computedCol.backgroundColor);
-                        currentShowShadow = computedCol.boxShadow !== 'none';
-
-                        const beforeStyle = window.getComputedStyle(col.querySelector('.curr') as Element, ':before');
-                        if (beforeStyle) {
-                            currentNumberColor = rgbToHex(beforeStyle.color);
-                        }
-                    }
-                }
-
-                const dialog = new Dialog({
-                    title: "时钟样式设置",
-                    content: `
-                        <div class="b3-dialog__content" style="display: flex; flex-direction: column; gap: 1rem; padding: 20px;">
-                            <div class="fn__flex-column">
-                                <div class="fn__flex" style="align-items: center; margin-bottom: 10px;">
-                                    <label class="fn__flex" style="width: 80px;">卡片颜色</label>
-                                    <input type="color" id="card-color" class="b3-text-field" 
-                                        value="${currentCardColor}"
-                                        style="width: 80px; height: 32px; padding: 2px;">
-                                </div>
-                                <div class="fn__flex" style="align-items: center;">
-                                    <label class="fn__flex" style="width: 80px;">数字颜色</label>
-                                    <input type="color" id="number-color" class="b3-text-field"
-                                        value="${currentNumberColor}"
-                                        style="width: 80px; height: 32px; padding: 2px;">
-                                </div>
-                                <div class="fn__flex" style="align-items: center; margin-top: 10px;">
-                                    <label class="fn__flex" style="width: 80px;">显示阴影</label>
-                                    <input class="b3-switch fn__flex-center" type="checkbox" id="show-shadow" ${currentShowShadow ? 'checked' : ''}>
-                                </div>
+                    <div class="fn__flex-column" style="gap: 1rem;">
+                        <div class="b3-label">时钟样式</div>
+                        <div class="fn__flex-column" style="gap: 0.8rem; padding-left: 1rem;">
+                            <div class="fn__flex" style="align-items: center;">
+                                <label class="fn__flex" style="width: 80px;">卡片颜色</label>
+                                <input type="color" id="card-color" class="b3-text-field" 
+                                    value="${this.getCardColor()}"
+                                    style="width: 80px; height: 32px; padding: 2px;">
+                            </div>
+                            <div class="fn__flex" style="align-items: center;">
+                                <label class="fn__flex" style="width: 80px;">数字颜色</label>
+                                <input type="color" id="number-color" class="b3-text-field"
+                                    value="${this.getNumberColor()}"
+                                    style="width: 80px; height: 32px; padding: 2px;">
+                            </div>
+                            <div class="fn__flex" style="align-items: center;">
+                                <label class="fn__flex" style="width: 80px;">显示阴影</label>
+                                <input class="b3-switch fn__flex-center" type="checkbox" id="show-shadow" ${this.hasClockShadow() ? 'checked' : ''}>
                             </div>
                         </div>
-                    `,
-                    width: "320px",
-                });
+                    </div>
 
-                const saveSettings = () => {
-                    const cardColor = (dialog.element.querySelector('#card-color') as HTMLInputElement).value;
-                    const numberColor = (dialog.element.querySelector('#number-color') as HTMLInputElement).value;
-                    const showShadow = (dialog.element.querySelector('#show-shadow') as HTMLInputElement).checked;
-
-                    // 更新样式
-                    const style = document.createElement('style');
-                    style.textContent = `
-                        .col {
-                            background-color: ${cardColor} !important;
-                            box-shadow: ${showShadow ? '0 4px 8px rgba(0, 0, 0, 0.2)' : 'none'} !important;
-                        }
-                        .curr, .next {
-                            color: ${numberColor} !important;
-                            background-color: ${cardColor} !important;
-                        }
-                        .curr::before, .next::before {
-                            background-color: ${cardColor} !important;
-                            color: ${numberColor} !important;
-                        }
-                        .flip .curr::before, .flip .next::before {
-                            background-color: ${cardColor} !important;
-                            color: ${numberColor} !important;
-                        }
-                    `;
-                    
-                    // 移除旧的样式（如果存在）
-                    const oldStyle = document.getElementById('clock-custom-style');
-                    if (oldStyle) {
-                        oldStyle.remove();
-                    }
-                    
-                    // 添加新样式
-                    style.id = 'clock-custom-style';
-                    document.head.appendChild(style);
-
-                    dialog.destroy();
-                };
-
-                // 添加确定和取消按钮
-                const btns = document.createElement("div");
-                btns.className = "fn__flex b3-dialog__action";
-                btns.innerHTML = `
-                    <button class="b3-button b3-button--cancel">取消</button>
-                    <div class="fn__space"></div>
-                    <button class="b3-button b3-button--text">确定</button>
-                `;
-                dialog.element.querySelector('.b3-dialog__content')?.appendChild(btns);
-
-                // 绑定按钮事件
-                btns.querySelector('.b3-button--cancel')?.addEventListener('click', () => {
-                    dialog.destroy();
-                });
-                btns.querySelector('.b3-button--text')?.addEventListener('click', saveSettings);
-            }
-        });
-
-        menu.addSeparator();
-
-        // 添加滚动文字设置选项
-        menu.addItem({
-            icon: "iconEdit",
-            label: "滚动文字设置",
-            click: () => {
-                const dialog = new Dialog({
-                    title: "滚动文字设置",
-                    content: `
-                        <div class="b3-dialog__content" style="display: flex; flex-direction: column; gap: 1rem; padding: 20px;">
-                            <div class="fn__flex-column">
-                                <label class="fn__flex" style="margin-bottom: 4px;">文字内容</label>
-                                <textarea class="b3-text-field fn__block" id="scrolling-text-content" rows="3" style="resize: vertical;">${this.scrollingText.textContent || ''}</textarea>
+                    <div class="fn__flex-column" style="gap: 1rem;">
+                        <div class="b3-label">滚动文字</div>
+                        <div class="fn__flex-column" style="gap: 0.8rem; padding-left: 1rem;">
+                            <div class="fn__flex-column" style="gap: 0.4rem;">
+                                <label class="fn__flex">文字内容</label>
+                                <textarea class="b3-text-field fn__block" id="scrolling-text-content" rows="3" 
+                                    style="resize: vertical;">${this.scrollingText.textContent || ''}</textarea>
                             </div>
-                            <div class="fn__flex-column" style="gap: 0.5rem;">
-                                <div class="fn__flex" style="align-items: center;">
-                                    <label class="fn__flex" style="width: 80px;">字体大小</label>
-                                    <input type="number" min="8" max="24" value="${parseInt(this.scrollingText.style.fontSize) || 12}" 
-                                        class="b3-text-field" id="scrolling-text-size" style="width: 80px;">
-                                    <span style="margin-left: 4px;">px</span>
-                                </div>
-                                <div class="fn__flex" style="align-items: center;">
-                                    <label class="fn__flex" style="width: 80px;">字体颜色</label>
-                                    <input type="color" value="${this.scrollingText.style.color || 'var(--b3-theme-primary)'}" 
-                                        class="b3-text-field" id="scrolling-text-color" style="width: 80px; height: 32px; padding: 2px;">
-                                </div>
+                            <div class="fn__flex" style="align-items: center;">
+                                <label class="fn__flex" style="width: 80px;">字体大小</label>
+                                <input type="number" min="8" max="24" value="${parseInt(this.scrollingText.style.fontSize) || 12}" 
+                                    class="b3-text-field" id="scrolling-text-size" style="width: 80px;">
+                                <span style="margin-left: 4px;">px</span>
+                            </div>
+                            <div class="fn__flex" style="align-items: center;">
+                                <label class="fn__flex" style="width: 80px;">字体颜色</label>
+                                <input type="color" value="${this.scrollingText.style.color || 'var(--b3-theme-primary)'}" 
+                                    class="b3-text-field" id="scrolling-text-color" style="width: 80px; height: 32px; padding: 2px;">
                             </div>
                             <div class="fn__flex" style="align-items: center;">
                                 <label class="fn__flex" style="margin-right: 8px;">
@@ -934,50 +844,126 @@ export class TomatoClock {
                                 </label>
                             </div>
                         </div>
-                    `,
-                    width: "520px",
-                });
+                    </div>
+                </div>
+            `,
+            width: "520px",
+        });
 
-                const saveSettings = () => {
-                    const content = (dialog.element.querySelector('#scrolling-text-content') as HTMLTextAreaElement).value;
-                    const fontSize = (dialog.element.querySelector('#scrolling-text-size') as HTMLInputElement).value;
-                    const color = (dialog.element.querySelector('#scrolling-text-color') as HTMLInputElement).value;
-                    const isBold = (dialog.element.querySelector('#scrolling-text-bold') as HTMLInputElement).checked;
-
-                    this.scrollingText.textContent = content;
-                    this.scrollingText.style.fontSize = `${fontSize}px`;
-                    this.scrollingText.style.color = color;
-                    this.scrollingText.style.fontWeight = isBold ? 'bold' : 'normal';
-
-                    // 根据内容是否为空来显示或隐藏滚动文字容器
-                    this.scrollingTextContainer.style.display = content.trim() ? 'flex' : 'none';
-
-                    dialog.destroy();
-                };
-
-                // 添加确定和取消按钮
-                const btns = document.createElement("div");
-                btns.className = "fn__flex b3-dialog__action";
-                btns.innerHTML = `
-                    <button class="b3-button b3-button--cancel">取消</button>
-                    <div class="fn__space"></div>
-                    <button class="b3-button b3-button--text">确定</button>
-                `;
-                dialog.element.querySelector('.b3-dialog__content')?.appendChild(btns);
-
-                // 绑定按钮事件
-                btns.querySelector('.b3-button--cancel')?.addEventListener('click', () => {
-                    dialog.destroy();
-                });
-                btns.querySelector('.b3-button--text')?.addEventListener('click', saveSettings);
+        // 绑定复选框事件
+        const showSecondsCheckbox = dialog.element.querySelector('#show-seconds') as HTMLInputElement;
+        showSecondsCheckbox.addEventListener('change', () => {
+            if (this.showSecondsCheckbox) {
+                this.showSecondsCheckbox.checked = showSecondsCheckbox.checked;
+                if (!this.isCountingDown) {
+                    this.secondGroup.style.display = this.showSecondsCheckbox.checked ? 'flex' : 'none';
+                }
             }
         });
 
-        menu.open({
-            x: rect.right,
-            y: rect.bottom,
-            isLeft: true,
+        const showNotificationCheckbox = dialog.element.querySelector('#show-notification') as HTMLInputElement;
+        showNotificationCheckbox.addEventListener('change', () => {
+            if (this.notificationCheckbox) {
+                this.notificationCheckbox.checked = showNotificationCheckbox.checked;
+            }
         });
+
+        // 添加保存按钮
+        const btns = document.createElement("div");
+        btns.className = "fn__flex b3-dialog__action";
+        btns.innerHTML = `
+            <button class="b3-button b3-button--cancel">取消</button>
+            <div class="fn__space"></div>
+            <button class="b3-button b3-button--text">保存</button>
+        `;
+        dialog.element.appendChild(btns);
+
+        // 绑定保存按钮事件
+        btns.querySelector('.b3-button--text')?.addEventListener('click', () => {
+            // 保存时钟样式设置
+            const cardColor = (dialog.element.querySelector('#card-color') as HTMLInputElement).value;
+            const numberColor = (dialog.element.querySelector('#number-color') as HTMLInputElement).value;
+            const showShadow = (dialog.element.querySelector('#show-shadow') as HTMLInputElement).checked;
+
+            // 更新时钟样式
+            const style = document.createElement('style');
+            style.textContent = `
+                .col {
+                    background-color: ${cardColor} !important;
+                    box-shadow: ${showShadow ? '0 4px 8px rgba(0, 0, 0, 0.2)' : 'none'} !important;
+                }
+                .curr, .next {
+                    color: ${numberColor} !important;
+                    background-color: ${cardColor} !important;
+                }
+                .curr::before, .next::before {
+                    background-color: ${cardColor} !important;
+                    color: ${numberColor} !important;
+                }
+                .flip .curr::before, .flip .next::before {
+                    background-color: ${cardColor} !important;
+                    color: ${numberColor} !important;
+                }
+            `;
+            
+            const oldStyle = document.getElementById('clock-custom-style');
+            if (oldStyle) {
+                oldStyle.remove();
+            }
+            style.id = 'clock-custom-style';
+            document.head.appendChild(style);
+
+            // 保存滚动文字设置
+            const content = (dialog.element.querySelector('#scrolling-text-content') as HTMLTextAreaElement).value;
+            const fontSize = (dialog.element.querySelector('#scrolling-text-size') as HTMLInputElement).value;
+            const textColor = (dialog.element.querySelector('#scrolling-text-color') as HTMLInputElement).value;
+            const isBold = (dialog.element.querySelector('#scrolling-text-bold') as HTMLInputElement).checked;
+
+            this.scrollingText.textContent = content;
+            this.scrollingText.style.fontSize = `${fontSize}px`;
+            this.scrollingText.style.color = textColor;
+            this.scrollingText.style.fontWeight = isBold ? 'bold' : 'normal';
+            this.scrollingTextContainer.style.display = content.trim() ? 'flex' : 'none';
+
+            dialog.destroy();
+        });
+
+        btns.querySelector('.b3-button--cancel')?.addEventListener('click', () => {
+            dialog.destroy();
+        });
+    }
+
+    private getCardColor(): string {
+        const customStyle = document.getElementById('clock-custom-style');
+        if (customStyle) {
+            const styleContent = customStyle.textContent || '';
+            const cardColorMatch = styleContent.match(/background-color: (#[a-fA-F0-9]{6})/);
+            if (cardColorMatch) {
+                return cardColorMatch[1];
+            }
+        }
+        return '#1e1e1e';
+    }
+
+    private getNumberColor(): string {
+        const customStyle = document.getElementById('clock-custom-style');
+        if (customStyle) {
+            const styleContent = customStyle.textContent || '';
+            const numberColorMatch = styleContent.match(/::before.*?color: (#[a-fA-F0-9]{6})/s);
+            if (numberColorMatch) {
+                return numberColorMatch[1];
+            }
+        }
+        return '#ffffff';
+    }
+
+    private hasClockShadow(): boolean {
+        const customStyle = document.getElementById('clock-custom-style');
+        if (customStyle) {
+            const styleContent = customStyle.textContent || '';
+            return styleContent.includes('box-shadow: 0 4px 8px');
+        }
+        return false;
     }
 
     private run() {
