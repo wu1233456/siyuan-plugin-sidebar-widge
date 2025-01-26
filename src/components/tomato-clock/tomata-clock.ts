@@ -8,10 +8,11 @@ export class TomatoClock {
     private buttonContainer: HTMLElement;
     private scrollingText: HTMLElement;
     private scrollingTextContainer: HTMLElement;
-    private settingsButton: HTMLElement;
-    private startButton: HTMLElement;
-    private pauseButton: HTMLElement;
-    private stopButton: HTMLElement;
+    private settingsButton: HTMLButtonElement;
+    private countdownButton: HTMLButtonElement;
+    private startButton: HTMLButtonElement;
+    private pauseButton: HTMLButtonElement;
+    private stopButton: HTMLButtonElement;
     private hourGroup: HTMLElement;
     private minuteGroup: HTMLElement;
     private secondGroup: HTMLElement;
@@ -26,6 +27,7 @@ export class TomatoClock {
     private isCountingDown: boolean = false;
     private isPaused: boolean = false;
     private isBreakTime: boolean = false;
+    private isSimpleCountdown: boolean = false;
     private hasHours: boolean = true;
     private lastSec: number = new Date().getSeconds();
 
@@ -85,10 +87,12 @@ export class TomatoClock {
                 this.buttonContainer.style.pointerEvents = 'auto';
             } else {
                 this.settingsButton.style.opacity = '1';
+                this.countdownButton.style.opacity = '1';
             }
         });
         this.container.addEventListener('mouseleave', () => {
             this.settingsButton.style.opacity = '0';
+            this.countdownButton.style.opacity = '0';
             this.buttonContainer.style.opacity = '0';
             this.buttonContainer.style.pointerEvents = 'none';
         });
@@ -229,7 +233,7 @@ export class TomatoClock {
         this.settingsButton.style.cssText = `
             position: absolute;
             top: 65%;
-            left: 50%;
+            left: 40%;
             transform: translate(-50%, -50%);
             background: var(--b3-theme-background);
             border: 1px solid var(--b3-theme-surface-lighter);
@@ -264,11 +268,58 @@ export class TomatoClock {
         });
 
         this.container.appendChild(this.settingsButton);
+
+        // 创建倒计时按钮
+        this.countdownButton = this.createButton('countdown');
+        this.countdownButton.style.cssText = `
+            position: absolute;
+            top: 65%;
+            left: 60%;
+            transform: translate(-50%, -50%);
+            background: var(--b3-theme-background);
+            border: 1px solid var(--b3-theme-surface-lighter);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 4;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        `;
+
+        this.countdownButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.showCountdownDialog();
+        });
+
+        // 添加悬停效果
+        this.countdownButton.addEventListener('mouseenter', () => {
+            this.countdownButton.style.background = 'var(--b3-theme-primary)';
+            this.countdownButton.style.transform = 'translate(-50%, -50%) scale(1.1)';
+            (this.countdownButton.querySelector('.icon') as HTMLElement).style.fill = '#fff';
+        });
+        this.countdownButton.addEventListener('mouseleave', () => {
+            this.countdownButton.style.background = 'var(--b3-theme-background)';
+            this.countdownButton.style.transform = 'translate(-50%, -50%)';
+            (this.countdownButton.querySelector('.icon') as HTMLElement).style.fill = 'var(--b3-theme-primary)';
+        });
+
+        this.container.appendChild(this.countdownButton);
     }
 
     private createButton(iconName: string): HTMLButtonElement {
-        const button = document.createElement('button');
-        button.innerHTML = `<svg class="icon" style="width: 12px; height: 12px; fill: var(--b3-theme-primary);"><use xlink:href="#${iconName}"></use></svg>`;
+        const button = document.createElement('button') as HTMLButtonElement;
+        if (iconName === 'countdown') {
+            button.innerHTML = `<svg class="icon" style="width: 12px; height: 12px; fill: var(--b3-theme-primary);" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M341.333333 85.333333a42.666667 42.666667 0 0 0 0 85.333334h128v42.666666c0 0.853333 0 1.664 0.085334 2.474667a362.709333 362.709333 0 0 0-299.434667 481.066667 40.32 40.32 0 0 0 75.946667-26.88 282.069333 282.069333 0 1 1 77.994666 116.224 40.277333 40.277333 0 0 0-53.717333 60.074666 362.666667 362.666667 0 1 0 284.373333-630.485333L554.666667 213.333333V170.666667h128a42.666667 42.666667 0 1 0 0-85.333334H341.333333z m218.496 598.826667l-90.282666-90.282667L469.333333 448.042667A42.666667 42.666667 0 1 1 554.666667 447.914667v110.378666l65.536 65.493334a42.666667 42.666667 0 0 1-60.373334 60.330666z"></path></svg>`;
+        } else if (iconName === 'iconTime') {
+            button.innerHTML = `<svg class="icon" style="width: 12px; height: 12px; fill: var(--b3-theme-primary);" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M767.138909 262.074182c262.469818 234.007273 82.199273 470.178909 53.038546 506.763636-42.821818 51.618909-355.607273 270.429091-608.41891 23.598546-120.040727-115.432727-141.358545-393.239273 21.038546-504.529455 0 54.388364 83.688727 123.205818 153.227636 77.381818 92.695273 159.813818 209.850182 77.591273 232.866909 6.446546 58.321455 26.530909 148.247273-7.261091 148.247273-109.661091z m89.739636 309.806545l11.822546-4.957091c-152.529455 64.651636-289.675636 96.116364-411.461818 94.487273l28.439272 53.457455c2.513455 4.770909 1.861818 11.613091-1.559272 15.197091a6.237091 6.237091 0 0 1-4.608 2.187636h-77.265455c-4.305455 0-7.749818-4.840727-7.749818-10.891636 0-2.792727 0.744727-5.352727 1.978182-7.261091l28.625454-53.922909c-95.906909-6.050909-181.853091-33.652364-257.815272-82.757819 8.913455 64.279273 37.585455 124.928 80.896 166.539637 222.138182 216.715636 497.012364 24.576 534.621091-20.759273 13.242182-16.570182 61.905455-72.145455 74.07709-151.319273z m-68.282181-216.040727c-5.818182 44.334545-87.389091 91.927273-146.781091 76.218182-60.695273 90.181818-188.485818 127.581091-269.963637-12.730182-69.515636 27.159273-139.054545-21.597091-148.084363-56.180364-36.770909 43.985455-55.389091 97.931636-58.833455 152.669091l-13.265454-7.912727a677.701818 677.701818 0 0 0 80.570181 43.985455v-32.628364a23.179636 23.179636 0 1 1 46.359273 0v48.104727c0 1.186909-0.093091 2.373818-0.256 3.490909 15.36 5.655273 30.929455 10.635636 46.615273 14.964364v-42.961455a23.179636 23.179636 0 0 1 46.359273 0v48.128c0 1.908364-0.232727 3.746909-0.674909 5.515637 15.522909 3.025455 31.185455 5.399273 47.010909 7.144727v-37.166545a23.179636 23.179636 0 1 1 46.359272 0v40.517818c123.741091 4.212364 255.092364-28.555636 394.053819-98.327273-4.957091-42.798545-22.248727-90.065455-59.601455-140.148364a390.958545 390.958545 0 0 0-9.867636-12.683636zM507.810909 152.832c62.789818-23.086545 106.728727-34.629818 131.816727-34.629818 37.608727 0 52.130909 34.629818 27.322182 100.002909 54.714182 25.6 72.727273 44.404364 71.819637 72.936727-0.442182 14.242909-5.934545 33.954909-35.304728 42.449455-57.902545 7.68-92.253091 10.589091-103.098182 8.750545-34.955636 37.562182-60.974545 56.343273-78.056727 56.343273-7.982545 0-18.571636 10.24-36.514909-3.607273-11.962182-9.216-34.676364-26.810182-68.119273-52.736-84.456727 4.258909-130.792727-8.052364-139.077818-36.933818-3.141818-11.008-3.351273-32.651636 4.305455-43.333818 7.447273-10.356364 29.207273-24.994909 65.233454-43.869091-21.015273-53.504-14.056727-86.830545 20.852364-100.002909 14.754909-6.679273 61.021091 4.887273 138.821818 34.629818z m119.714909 15.685818c-73.728 24.296727-113.640727 36.445091-119.714909 36.445091-6.050909 0-44.381091-10.496-114.967273-31.488 7.749818 35.863273 10.24 57.437091 7.540364 64.674909-2.722909 7.214545-22.621091 22.690909-59.671273 46.382546 60.578909 5.538909 93.416727 9.658182 98.513455 12.334545 5.12 2.653091 27.973818 19.130182 68.584727 49.431273 43.170909-32.209455 69.259636-50.036364 78.242909-53.457455 8.983273-3.421091 38.749091-6.190545 89.250909-8.308363-36.165818-24.971636-55.854545-40.448-59.112727-46.382546-3.258182-5.957818 0.512-29.160727 11.333818-69.632z"></path></svg>`;
+        } else {
+            button.innerHTML = `<svg class="icon" style="width: 12px; height: 12px; fill: var(--b3-theme-primary);"><use xlink:href="#${iconName}"></use></svg>`;
+        }
         button.style.cssText = `
             background: transparent;
             border: none;
@@ -480,15 +531,22 @@ export class TomatoClock {
                 this.updateProgress();
                 if (this.countdownTime === 0) {
                     if (this.notificationCheckbox?.checked) {
-                        showMessage(this.isBreakTime ? "休息时间结束！" : "专注时间结束！");
+                        if (this.isSimpleCountdown) {
+                            showMessage("倒计时结束！");
+                            this.handleStop();
+                            return;
+                        } else {
+                            showMessage(this.isBreakTime ? "休息时间结束！" : "专注时间结束！");
+                        }
                     }
-                    this.isBreakTime = !this.isBreakTime;
-                    const nextMinutes = this.isBreakTime ? this.selectedBreakTime : this.selectedFocusTime;
-                    this.countdownTime = nextMinutes * 60;
-                    this.totalTime = this.countdownTime;
-                    this.progressBar.style.width = '0%';
-                    
-                    this.updateTitle();
+                    if (!this.isSimpleCountdown) {
+                        this.isBreakTime = !this.isBreakTime;
+                        const nextMinutes = this.isBreakTime ? this.selectedBreakTime : this.selectedFocusTime;
+                        this.countdownTime = nextMinutes * 60;
+                        this.totalTime = this.countdownTime;
+                        this.progressBar.style.width = '0%';
+                        this.updateTitle();
+                    }
                 }
             }
         }
@@ -538,8 +596,11 @@ export class TomatoClock {
         this.isCountingDown = false;
         this.isPaused = false;
         this.countdownTime = 0;
+        this.isSimpleCountdown = false;
         this.settingsButton.style.display = 'block';
+        this.countdownButton.style.display = 'block';
         this.settingsButton.style.opacity = '0';
+        this.countdownButton.style.opacity = '0';
         this.hasHours = true;
         this.hourGroup.style.display = 'flex';
         this.secondGroup.style.display = this.showSecondsCheckbox?.checked ? 'flex' : 'none';
@@ -730,31 +791,6 @@ export class TomatoClock {
 
             // 绑定按钮事件
             confirmButton.addEventListener('click', () => {
-                const minutes = this.isBreakTime ? this.selectedBreakTime : this.selectedFocusTime;
-                this.countdownTime = minutes * 60;
-                
-                if (this.countdownTime > 0) {
-                    this.totalTime = this.countdownTime;
-                    this.isCountingDown = true;
-                    this.isPaused = false;
-                    this.startButton.style.display = 'none';
-                    this.settingsButton.style.display = 'none';
-                    
-                    this.hasHours = false;
-                    this.hourGroup.style.display = 'none';
-                    this.secondGroup.style.display = 'flex';  // 在倒计时时始终显示秒
-
-                    this.timeDiv.style.display = 'flex';
-                    this.progressBar.style.width = '0%';
-                    this.progressContainer.style.opacity = '1';
-                    
-                    // 更新标题显示当前是工作还是休息时间
-                    const title = this.isBreakTime ? '休息时间' : '专注时间';
-                    const titleElement = this.container.closest('.dock')?.querySelector('.dock__title');
-                    if (titleElement) {
-                        titleElement.textContent = title;
-                    }
-                }
                 dialog.destroy();
             });
 
@@ -964,6 +1000,74 @@ export class TomatoClock {
             return styleContent.includes('box-shadow: 0 4px 8px');
         }
         return false;
+    }
+
+    private showCountdownDialog() {
+        const dialog = new Dialog({
+            title: '倒计时设置',
+            content: `
+                <div class="b3-dialog__content" style="display: flex; flex-direction: column; gap: 1rem; padding: 20px;">
+                    <div class="fn__flex-column" style="gap: 1rem;">
+                        <div class="fn__flex" style="align-items: center;">
+                            <label class="fn__flex" style="width: 80px;">时长(分钟)</label>
+                            <input type="number" id="countdown-minutes" class="b3-text-field" 
+                                min="1" max="999" value="30" style="width: 80px;">
+                        </div>
+                    </div>
+                    <div class="fn__flex b3-dialog__action">
+                        <button class="b3-button b3-button--cancel">取消</button>
+                        <div class="fn__space"></div>
+                        <button class="b3-button b3-button--text">开始</button>
+                    </div>
+                </div>
+            `,
+            width: "300px",
+        });
+
+        // 绑定按钮事件
+        const startButton = dialog.element.querySelector('.b3-button--text') as HTMLButtonElement;
+        startButton.addEventListener('click', () => {
+            const minutes = parseInt((dialog.element.querySelector('#countdown-minutes') as HTMLInputElement).value);
+            if (minutes > 0) {
+                this.startSimpleCountdown(minutes);
+            }
+            dialog.destroy();
+        });
+
+        const cancelButton = dialog.element.querySelector('.b3-button--cancel') as HTMLButtonElement;
+        cancelButton.addEventListener('click', () => {
+            dialog.destroy();
+        });
+    }
+
+    private startSimpleCountdown(minutes: number) {
+        this.countdownTime = minutes * 60;
+        this.totalTime = this.countdownTime;
+        this.isCountingDown = true;
+        this.isPaused = false;
+        this.isSimpleCountdown = true;
+        this.isBreakTime = false;
+
+        // 隐藏设置按钮和倒计时按钮
+        this.settingsButton.style.display = 'none';
+        this.countdownButton.style.display = 'none';
+
+        // 设置显示格式
+        this.hasHours = false;
+        this.hourGroup.style.display = 'none';
+        this.secondGroup.style.display = 'flex';
+
+        // 显示进度条和控制按钮
+        this.progressBar.style.width = '0%';
+        this.progressContainer.style.opacity = '1';
+        this.buttonContainer.style.opacity = '1';
+        this.buttonContainer.style.pointerEvents = 'auto';
+
+        // 更新标题
+        const titleElement = this.container.closest('.dock')?.querySelector('.dock__title');
+        if (titleElement) {
+            titleElement.textContent = '倒计时';
+        }
     }
 
     private run() {
