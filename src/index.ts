@@ -10,6 +10,7 @@ import "@/index.scss";
 import { TomatoClock } from "./components/tomato-clock/tomata-clock";
 import { MemorialDay } from "./components/MemorialDay/memorial-day";
 import { HabitTracker } from "./components/habit-tracker/habit-tracker";
+import { StickyNote } from "./components/sticky-note/sticky-note";
 
 const STORAGE_NAME = "menu-config";
 const TAB_TYPE = "custom_tab";
@@ -22,6 +23,7 @@ export default class PluginSample extends Plugin {
     private tomatoClock: TomatoClock;
     private memorialDay: MemorialDay;
     private habitTracker: HabitTracker;
+    private stickyNote: StickyNote;
 
     async onload() {
         this.data[STORAGE_NAME] = { readonlyText: "Readonly" };
@@ -135,6 +137,17 @@ export default class PluginSample extends Plugin {
                 habitCard.style.cssText = cardStyle;
                 habitRow.appendChild(habitCard);
                 this.habitTracker = new HabitTracker(habitCard);
+
+                // 创建第四行并添加贴纸卡片
+                const stickyRow = createRow();
+                dock.element.appendChild(stickyRow);
+                const stickyCard = document.createElement('div');
+                stickyCard.className = 'card';
+                stickyCard.setAttribute('draggable', 'true');
+                stickyCard.dataset.cardType = 'sticky';
+                stickyCard.style.cssText = cardStyle;
+                stickyRow.appendChild(stickyCard);
+                this.stickyNote = new StickyNote(stickyCard);
 
                 // 添加拖拽相关事件监听
                 const cards = dock.element.getElementsByClassName('card');
