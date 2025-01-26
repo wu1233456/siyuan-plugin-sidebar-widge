@@ -14,6 +14,7 @@ import { StickyNote } from "./components/sticky-note/sticky-note";
 import { Calendar } from "./components/calendar/calendar";
 import { TodoList } from "./components/todo-list/todo-list";
 import { Bookmark } from "./components/bookmark/bookmark";
+import { DailyQuote } from "./components/daily-quote/daily-quote";
 
 const STORAGE_NAME = "menu-config";
 const TAB_TYPE = "custom_tab";
@@ -30,6 +31,7 @@ export default class PluginSample extends Plugin {
     private calendar: Calendar;
     private todoList: TodoList;
     private bookmark: Bookmark;
+    private dailyQuote: DailyQuote;
 
     async onload() {
         this.data[STORAGE_NAME] = { readonlyText: "Readonly" };
@@ -196,6 +198,17 @@ export default class PluginSample extends Plugin {
                 bookmarkCard.style.cssText = cardStyle;
                 bookmarkRow.appendChild(bookmarkCard);
                 this.bookmark = new Bookmark(bookmarkCard);
+
+                // 创建第八行并添加每日一言卡片
+                const quoteRow = createRow();
+                dock.element.appendChild(quoteRow);
+                const quoteCard = document.createElement('div');
+                quoteCard.className = 'card';
+                quoteCard.setAttribute('draggable', 'true');
+                quoteCard.dataset.cardType = 'quote';
+                quoteCard.style.cssText = cardStyle;
+                quoteRow.appendChild(quoteCard);
+                this.dailyQuote = new DailyQuote(quoteCard);
 
                 // 添加拖拽相关事件监听
                 const cards = dock.element.getElementsByClassName('card');
