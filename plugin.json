@@ -1,7 +1,7 @@
 {
-  "name": "tomato-clock",
+  "name": "siyuan-plugin-sidebar-widget",
   "author": "wuchunlin",
-  "url": "https://github.com/siyuan-note/plugin-sample-vite-svelte",
+  "url": "https://github.com/wu1233456/siyuan-plugin-sidebar-widge",
   "version": "0.3.6",
   "minAppVersion": "3.0.12",
   "backends": [
@@ -21,12 +21,12 @@
     "desktop-window"
   ],
   "displayName": {
-    "en_US": "tomato-clock",
-    "zh_CN": "番茄时钟"
+    "en_US": "siyuan-plugin-sidebar-widget",
+    "zh_CN": "侧边栏小组件"
   },
   "description": {
-    "en_US": "SiYuan plugin sample with vite and svelte",
-    "zh_CN": "使用 vite 和 svelte 开发的思源插件样例"
+    "en_US": "siyuan-plugin-sidebar-widget",
+    "zh_CN": "思源笔记侧边栏小组件库，给你的侧边栏加点有趣的东西"
   },
   "readme": {
     "en_US": "README.md",
@@ -38,8 +38,9 @@
     ]
   },
   "keywords": [
-    "plugin",
-    "sample",
-    "插件样例"
+    "sidebar-widget",
+    "时钟",
+    "番茄钟",
+    "倒计时"
   ]
 }
