@@ -8,6 +8,7 @@ import {
 } from "siyuan";
 import "@/index.scss";
 import { TomatoClock } from "./components/tomato-clock";
+import { MemorialDay } from "./components/MemorialDay/memorial-day";
 
 const STORAGE_NAME = "menu-config";
 const TAB_TYPE = "custom_tab";
@@ -18,6 +19,7 @@ export default class PluginSample extends Plugin {
     customTab: () => IModel;
     private isMobile: boolean;
     private tomatoClock: TomatoClock;
+    private memorialDay: MemorialDay;
 
     async onload() {
         this.data[STORAGE_NAME] = { readonlyText: "Readonly" };
@@ -84,6 +86,21 @@ export default class PluginSample extends Plugin {
                 dock.element.appendChild(card);
                 
                 this.tomatoClock = new TomatoClock(card);
+
+                // 添加纪念日卡片
+                const memorialCard = document.createElement('div');
+                memorialCard.className = 'card';
+                memorialCard.style.cssText = `
+                    background: var(--b3-theme-surface);
+                    border-radius: 16px;
+                    margin: 5px 5px;
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                    border: 1px solid var(--b3-theme-surface-lighter);
+                    position: relative;
+                `;
+                dock.element.appendChild(memorialCard);
+                this.memorialDay = new MemorialDay(memorialCard);
             }
         });
     }
