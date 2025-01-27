@@ -19,6 +19,7 @@ import { Muyu } from "./components/muyu/muyu";
 import { RecentDocs } from "./components/recent-docs/recent-docs";
 import { Memo } from "./components/memo/memo";
 import { PhotoAlbum } from "./components/photo-album/photo-album";
+import { Heatmap } from "./components/heatmap/heatmap";
 import { getFile, putFile } from "./api";
 
 const STORAGE_NAME = "menu-config";
@@ -41,6 +42,7 @@ export default class PluginSample extends Plugin {
     private recentDocs: RecentDocs;
     private memo: Memo;
     private photoAlbum: PhotoAlbum;
+    private heatmap: Heatmap;
     private layoutConfigPath: string = "/data/storage/sidebar-layout.json";
 
     async onload() {
@@ -441,6 +443,9 @@ export default class PluginSample extends Plugin {
                         case 'photo':
                             this.photoAlbum = new PhotoAlbum(card);
                             break;
+                        case 'heatmap':
+                            this.heatmap = new Heatmap(card);
+                            break;
                     }
 
                     // 为新卡片添加拖拽事件
@@ -543,6 +548,10 @@ export default class PluginSample extends Plugin {
                             <div class="card-option" data-type="photo">
                                 <svg><use xlink:href="#iconImage"></use></svg>
                                 <span class="card-option-label">相册</span>
+                            </div>
+                            <div class="card-option" data-type="heatmap">
+                                <svg><use xlink:href="#iconCalendar"></use></svg>
+                                <span class="card-option-label">活跃度</span>
                             </div>
                         </div>`,
                         width: "520px",
@@ -665,6 +674,9 @@ export default class PluginSample extends Plugin {
                                                     break;
                                                 case 'photo':
                                                     this.photoAlbum = new PhotoAlbum(card);
+                                                    break;
+                                                case 'heatmap':
+                                                    this.heatmap = new Heatmap(card);
                                                     break;
                                             }
                                             
