@@ -1,8 +1,8 @@
 {
   "name": "siyuan-plugin-sidebar-widget",
   "author": "wuchunlin",
-  "url": "https://github.com/wu1233456/siyuan-plugin-sidebar-widge",
-  "version": "0.3.6",
+  "url": "https://github.com/wu1233456/siyuan-plugin-sidebar-widget",
+  "version": "1.0.0",
   "minAppVersion": "3.0.12",
   "backends": [
     "windows",
@@ -41,6 +41,13 @@
     "sidebar-widget",
     "时钟",
     "番茄钟",
-    "倒计时"
+    "倒计时",
+    "习惯打卡",
+    "音乐播放器",
+    "日历",
+    "待办事项",
+    "最近文档",
+    "收藏夹",
+    "侧边栏小组件"
   ]
 }
