@@ -16,6 +16,7 @@ import { TodoList } from "./components/todo-list/todo-list";
 import { Bookmark } from "./components/bookmark/bookmark";
 import { DailyQuote } from "./components/daily-quote/daily-quote";
 import { Muyu } from "./components/muyu/muyu";
+import { RecentDocs } from "./components/recent-docs/recent-docs";
 import { getFile, putFile } from "./api";
 
 const STORAGE_NAME = "menu-config";
@@ -35,6 +36,7 @@ export default class PluginSample extends Plugin {
     private bookmark: Bookmark;
     private dailyQuote: DailyQuote;
     private muyu: Muyu;
+    private recentDocs: RecentDocs;
     private layoutConfigPath: string = "/data/storage/sidebar-layout.json";
 
     async onload() {
@@ -363,6 +365,30 @@ export default class PluginSample extends Plugin {
                     card.style.cssText = cardStyle;
                     row.appendChild(card);
                     
+                    // 添加上下文菜单事件
+                    card.addEventListener('contextmenu', (e: MouseEvent) => {
+                        e.preventDefault();
+                        const menu = new Menu("cardOperation");
+                        menu.addItem({
+                            icon: "iconTrashcan",
+                            label: "删除",
+                            click: async () => {
+                                const parentRow = card.parentElement;
+                                card.remove();
+                                // 如果行为空，删除行
+                                if (parentRow && !parentRow.hasChildNodes()) {
+                                    parentRow.remove();
+                                }
+                                // 保存布局配置
+                                await saveLayoutConfig();
+                            }
+                        });
+                        menu.open({
+                            x: e.clientX,
+                            y: e.clientY
+                        });
+                    });
+                    
                     switch(type) {
                         case 'tomato':
                             this.tomatoClock = new TomatoClock(card);
@@ -390,6 +416,9 @@ export default class PluginSample extends Plugin {
                             break;
                         case 'muyu':
                             this.muyu = new Muyu(card);
+                            break;
+                        case 'recent':
+                            this.recentDocs = new RecentDocs(card);
                             break;
                     }
 
@@ -482,6 +511,10 @@ export default class PluginSample extends Plugin {
                                 <svg><use xlink:href="#iconMuyu"></use></svg>
                                 <span class="card-option-label">木鱼</span>
                             </div>
+                            <div class="card-option" data-type="recent">
+                                <svg><use xlink:href="#iconBookmark"></use></svg>
+                                <span class="card-option-label">最近文档</span>
+                            </div>
                         </div>`,
                         width: "520px",
                     });
@@ -538,6 +571,30 @@ export default class PluginSample extends Plugin {
                                             card.style.cssText = cardStyle;
                                             row.appendChild(card);
                                             
+                                            // 添加上下文菜单事件
+                                            card.addEventListener('contextmenu', (e: MouseEvent) => {
+                                                e.preventDefault();
+                                                const menu = new Menu("cardOperation");
+                                                menu.addItem({
+                                                    icon: "iconTrashcan",
+                                                    label: "删除",
+                                                    click: async () => {
+                                                        const parentRow = card.parentElement;
+                                                        card.remove();
+                                                        // 如果行为空，删除行
+                                                        if (parentRow && !parentRow.hasChildNodes()) {
+                                                            parentRow.remove();
+                                                        }
+                                                        // 保存布局配置
+                                                        await saveLayoutConfig();
+                                                    }
+                                                });
+                                                menu.open({
+                                                    x: e.clientX,
+                                                    y: e.clientY
+                                                });
+                                            });
+                                            
                                             switch(type) {
                                                 case 'tomato':
                                                     this.tomatoClock = new TomatoClock(card);
@@ -565,6 +622,9 @@ export default class PluginSample extends Plugin {
                                                     break;
                                                 case 'muyu':
                                                     this.muyu = new Muyu(card);
+                                                    break;
+                                                case 'recent':
+                                                    this.recentDocs = new RecentDocs(card);
                                                     break;
                                             }
                                             

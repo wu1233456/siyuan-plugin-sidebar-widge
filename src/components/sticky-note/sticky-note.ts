@@ -30,7 +30,7 @@ export class StickyNote {
         try {
             const config = await getFile(this.configPath);
             if (config) {
-                this.content = config.content;
+                this.content = config.content?config.content:'贴纸';
                 this.backgroundColor = config.backgroundColor;
                 this.textColor = config.textColor;
             }
