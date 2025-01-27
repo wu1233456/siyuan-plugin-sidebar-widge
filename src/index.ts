@@ -45,11 +45,11 @@ export default class PluginSample extends Plugin {
     private photoAlbum: PhotoAlbum;
     private heatmap: Heatmap;
     private musicPlayer: MusicPlayer;
-    private layoutConfigPath: string = "/data/storage/sidebar-layout.json";
+    private layoutConfigPath: string = "/data/storage/siyuan-plugin-sidebar-widget/sidebar-layout.json";
 
     async onload() {
         this.data[STORAGE_NAME] = { readonlyText: "Readonly" };
-        this.layoutConfigPath = "/data/storage/sidebar-layout.json";
+        this.layoutConfigPath = "/data/storage/siyuan-plugin-sidebar-widget/sidebar-layout.json";
 
         console.log("loading plugin-sample", this.i18n);
 
