@@ -1,19 +1,65 @@
 # SiYuan Note Widgets Library
 
-A plugin library that provides useful widgets for SiYuan Note. Currently includes a flip clock and a pomodoro timer widget that can be added to the SiYuan Note sidebar.
+A plugin library that provides useful widgets for SiYuan Note. It offers various practical widgets that can be added to the SiYuan Note sidebar.
 
 ## Features
 
-### Flip Clock
-- Display an elegant flip clock in the sidebar
-- Support 12/24 hour format
-- Customizable clock style and color
+### Music Player
+- Play music in the sidebar
+- Music playlist management and playback controls
+
+### Heatmap
+- Visualize activity data
+- Intuitive data statistics display
+
+### Photo Album
+- Image display and management
+- Album browsing support
+
+### Memo
+- Quick note taking and viewing
+- Convenient memo management
+
+### Recent Documents
+- Display recently accessed documents
+- Quick access to frequently used documents
+
+### Electronic Muyu
+- Virtual wooden fish tapping
+- Merit counter
+
+### Daily Quote
+- Display daily quotes or sayings
+- Provide spiritual inspiration
+
+### Bookmark
+- Manage document bookmarks
+- Quick access to important content
+
+### Todo List
+- Task management
+- Progress tracking
+
+### Calendar
+- Date viewing
+- Important date marking
+
+### Sticky Notes
+- Quick temporary notes
+- Convenient information reminders
 
 ### Pomodoro Timer
-- Clean and simple pomodoro timer
+- Pomodoro technique timer
 - Customizable work and break duration
-- Timer notifications
-- Track pomodoro completion statistics
+- Focus reminders
+
+### Habit Tracker
+- Track daily habits
+- Habit formation statistics
+
+### Memorial Day
+- Important date reminders
+- Countdown display
 
 ## Getting Started
 
@@ -22,19 +68,6 @@ A plugin library that provides useful widgets for SiYuan Note. Currently include
 3. Enable desired widgets in the sidebar settings
 4. Adjust widget settings according to your preferences
 
-## Settings
-
-### Flip Clock Settings
-- Time Format: 12-hour/24-hour
-- Clock Theme Color
-- Display Position Adjustment
-
-### Pomodoro Timer Settings
-- Work Duration (default 25 minutes)
-- Break Duration (default 5 minutes)
-- Notification Method
-- Statistics Tracking Toggle
-
 ## FAQ
 
 **Q: How do I adjust the widget position?**
@@ -42,13 +75,6 @@ A: Hold and drag the widget title bar in the sidebar to adjust its position.
 
 **Q: Can I use multiple widgets at the same time?**
 A: Yes, you can enable multiple widgets according to your needs.
-
-## Changelog
-
-### v0.1.0
-- Initial release
-- Added flip clock widget
-- Added pomodoro timer widget
 
 ## Feedback
 
@@ -59,9 +85,9 @@ If you encounter any issues or have suggestions for new features, feel free to p
 
 ## Development Roadmap
 
-- [ ] Add more useful widgets
-- [ ] Optimize existing widget performance
+- [ ] Continue optimizing existing widget performance
 - [ ] Provide more customization options
+- [ ] Add new features based on user feedback
 
 ## License
 

@@ -13,10 +13,12 @@ export class MusicPlayer {
     private playlist: Song[] = [];
     private currentSongIndex: number = 0;
     private isPlaying: boolean = false;
-    private storagePath: string = "/data/storage/music-player.json";
+    private isLoopMode: boolean = true;
+    private storagePath: string = "/data/storage/siyuan-plugin-sidebar-widget/music-player.json";
     private songTitleElement: HTMLDivElement;
     private songArtistElement: HTMLDivElement;
     private playButtonElement: HTMLButtonElement;
+    private loopButtonElement: HTMLButtonElement;
 
     constructor(container: HTMLElement) {
         this.container = container;
@@ -28,17 +30,30 @@ export class MusicPlayer {
     private async init() {
         // 设置卡片样式
         this.container.style.cssText = `
-            padding: 12px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             height: 120px;
             width: 100%;
-            background: var(--b3-theme-background);
+            background: #e8e8e8;
             border-radius: 16px;
             overflow: hidden;
             position: relative;
             box-sizing: border-box;
+            box-shadow: 6px 6px 12px #c5c5c5, -6px -6px 12px #ffffff;
+            border: 1px solid #e8e8e8;
+            transition: all 0.3s;
+            cursor: pointer;
         `;
+
+        // 添加点击事件
+        this.container.addEventListener('click', (e) => {
+            // 如果点击的是控制按钮或其子元素，不触发设置弹窗
+            if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('svg') || (e.target as HTMLElement).closest('use')) {
+                return;
+            }
+            this.showPlaylistDialog();
+        });
 
         // 创建音乐信息区域
         const musicInfo = document.createElement('div');
@@ -46,7 +61,7 @@ export class MusicPlayer {
             display: flex;
             flex-direction: column;
             gap: 2px;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             width: 100%;
         `;
 
@@ -54,7 +69,7 @@ export class MusicPlayer {
         songTitle.style.cssText = `
             font-size: 16px;
             font-weight: 500;
-            color: var(--b3-theme-on-background);
+            color: #090909;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -67,8 +82,7 @@ export class MusicPlayer {
         const songArtist = document.createElement('div');
         songArtist.style.cssText = `
             font-size: 14px;
-            color: var(--b3-theme-on-surface);
-            opacity: 0.8;
+            color: #666666;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -87,7 +101,7 @@ export class MusicPlayer {
             display: flex;
             justify-content: flex-start;
             align-items: center;
-            gap: 20px;
+            gap: 24px;
             margin-top: auto;
             padding: 4px 0;
             width: 100%;
@@ -95,51 +109,20 @@ export class MusicPlayer {
 
         // 创建循环按钮
         const loopButton = this.createControlButton('iconRefresh', '循环播放');
-        loopButton.style.cssText += `
-            width: 16px;
-            height: 16px;
-        `;
-
-        // 创建上一首按钮
+        this.loopButtonElement = loopButton;
+        loopButton.addEventListener('click', () => this.togglePlayMode());
         const prevButton = this.createControlButton('iconLeft', '上一首');
-        prevButton.style.cssText += `
-            width: 20px;
-            height: 20px;
-        `;
-
-        // 创建播放按钮
         const playButton = this.createControlButton('iconPlay', '播放');
-        playButton.style.cssText += `
-            width: 28px;
-            height: 28px;
-            color: var(--b3-theme-primary);
-            opacity: 1;
-        `;
-
-        // 创建下一首按钮
         const nextButton = this.createControlButton('iconRight', '下一首');
-        nextButton.style.cssText += `
-            width: 20px;
-            height: 20px;
-        `;
-
-        // 创建菜单按钮
-        const menuButton = this.createControlButton('iconMore', '播放列表');
-        menuButton.style.cssText += `
-            width: 16px;
-            height: 16px;
-        `;
 
         prevButton.addEventListener('click', () => this.playPrevious());
         playButton.addEventListener('click', () => this.togglePlay());
         nextButton.addEventListener('click', () => this.playNext());
-        menuButton.addEventListener('click', () => this.showPlaylistDialog());
 
         controls.appendChild(loopButton);
         controls.appendChild(prevButton);
         controls.appendChild(playButton);
         controls.appendChild(nextButton);
-        controls.appendChild(menuButton);
 
         this.container.appendChild(musicInfo);
         this.container.appendChild(controls);
@@ -158,29 +141,49 @@ export class MusicPlayer {
 
     private createControlButton(iconName: string, title: string): HTMLButtonElement {
         const button = document.createElement('button');
-        button.innerHTML = `<svg style="width: 14px; height: 14px;"><use xlink:href="#${iconName}"></use></svg>`;
+        button.innerHTML = `<svg style="width: 12px; height: 12px;"><use xlink:href="#${iconName}"></use></svg>`;
         button.title = title;
         button.style.cssText = `
-            padding: 2px;
-            background: transparent;
-            border: none;
+            padding: 4px;
+            background: #e8e8e8;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
             cursor: pointer;
-            color: var(--b3-theme-on-background);
-            opacity: 0.6;
-            transition: all 0.2s;
+            color: #090909;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
+            box-shadow: 3px 3px 6px #c5c5c5, -3px -3px 6px #ffffff;
+            min-width: 24px;
+            min-height: 24px;
         `;
+
+        // 如果是播放按钮，稍微大一点
+        if (iconName === 'iconPlay' || iconName === 'iconPause') {
+            button.style.padding = '6px';
+            button.style.minWidth = '28px';
+            button.style.minHeight = '28px';
+            button.innerHTML = `<svg style="width: 14px; height: 14px;"><use xlink:href="#${iconName}"></use></svg>`;
+        }
+
         button.addEventListener('mouseenter', () => {
-            button.style.opacity = '1';
-            button.style.transform = 'scale(1.1)';
+            button.style.transform = 'scale(1.05)';
         });
+
         button.addEventListener('mouseleave', () => {
-            button.style.opacity = '0.6';
             button.style.transform = 'scale(1)';
         });
+
+        button.addEventListener('mousedown', () => {
+            button.style.boxShadow = 'inset 2px 2px 4px #c5c5c5, inset -2px -2px 4px #ffffff';
+        });
+
+        button.addEventListener('mouseup', () => {
+            button.style.boxShadow = '3px 3px 6px #c5c5c5, -3px -3px 6px #ffffff';
+        });
+
         return button;
     }
 
@@ -189,9 +192,19 @@ export class MusicPlayer {
             const data = await getFile(this.storagePath);
             if (data) {
                 try {
-                    this.playlist = JSON.parse(data as string);
+
+                    this.playlist = data.playlist || [];
+                    this.currentSongIndex = data.currentSongIndex || 0;
+                    this.isLoopMode = data.isLoopMode !== undefined ? data.isLoopMode : true;
+                    
                     if (this.playlist.length > 0) {
                         this.updateNowPlaying();
+                    }
+                    
+                    // 更新循环模式按钮状态
+                    if (this.loopButtonElement) {
+                        this.loopButtonElement.innerHTML = `<svg style="width: 12px; height: 12px;"><use xlink:href="#icon${this.isLoopMode ? 'Refresh' : 'Forward'}"></use></svg>`;
+                        this.loopButtonElement.title = this.isLoopMode ? '循环播放' : '顺序播放';
                     }
                 } catch {
                     this.playlist = [];
@@ -204,10 +217,16 @@ export class MusicPlayer {
     }
 
     private async savePlaylist() {
+        const config = {
+            playlist: this.playlist,
+            currentSongIndex: this.currentSongIndex,
+            isLoopMode: this.isLoopMode
+        };
         try {
-            await putFile(this.storagePath, false, new Blob([JSON.stringify(this.playlist)], { type: "application/json" }));
+            await putFile(this.storagePath, false, new Blob([JSON.stringify(config)], { type: "application/json" }));
+            console.log('保存播放列表成功');
         } catch (e) {
-            console.log('保存播放列表失败');
+            console.error('保存播放列表失败', e);
         }
     }
 
@@ -303,7 +322,7 @@ export class MusicPlayer {
                 this.playlist.push({ title, artist, url });
                 await this.savePlaylist();
                 if (this.playlist.length === 1) {
-                    this.playSong(0);
+                    this.updateNowPlaying();
                 }
                 dialog.destroy();
             } else {
@@ -499,7 +518,7 @@ export class MusicPlayer {
 
     private updatePlayButton() {
         if (this.playButtonElement) {
-            this.playButtonElement.innerHTML = `<svg><use xlink:href="#icon${this.isPlaying ? 'Pause' : 'Play'}"></use></svg>`;
+            this.playButtonElement.innerHTML = `<svg style="width: 14px; height: 14px;"><use xlink:href="#icon${this.isPlaying ? 'Pause' : 'Play'}"></use></svg>`;
             this.playButtonElement.style.opacity = '1';
         }
     }
@@ -543,7 +562,26 @@ export class MusicPlayer {
 
     private playNext() {
         if (this.playlist.length === 0) return;
-        const newIndex = (this.currentSongIndex + 1) % this.playlist.length;
-        this.playSong(newIndex);
+        
+        if (this.isLoopMode) {
+            const newIndex = (this.currentSongIndex + 1) % this.playlist.length;
+            this.playSong(newIndex);
+        } else if (this.currentSongIndex < this.playlist.length - 1) {
+            this.playSong(this.currentSongIndex + 1);
+        } else {
+            // 如果是最后一首歌且不是循环模式，则停止播放
+            this.audio.pause();
+            this.isPlaying = false;
+            this.updatePlayButton();
+        }
+    }
+
+    private togglePlayMode() {
+        this.isLoopMode = !this.isLoopMode;
+        if (this.loopButtonElement) {
+            this.loopButtonElement.innerHTML = `<svg style="width: 12px; height: 12px;"><use xlink:href="#icon${this.isLoopMode ? 'Refresh' : 'Forward'}"></use></svg>`;
+            this.loopButtonElement.title = this.isLoopMode ? '循环播放' : '顺序播放';
+        }
+        this.savePlaylist();
     }
 } 

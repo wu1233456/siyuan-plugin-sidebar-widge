@@ -523,7 +523,7 @@ export default class PluginSample extends Plugin {
                             </div>
                             <div class="card-option" data-type="sticky">
                                 <svg><use xlink:href="#iconEdit"></use></svg>
-                                <span class="card-option-label">便利贴</span>
+                                <span class="card-option-label">贴纸</span>
                             </div>
                             <div class="card-option" data-type="calendar">
                                 <svg><use xlink:href="#iconCalendar"></use></svg>
@@ -559,7 +559,7 @@ export default class PluginSample extends Plugin {
                             </div>
                             <div class="card-option" data-type="heatmap">
                                 <svg><use xlink:href="#iconCalendar"></use></svg>
-                                <span class="card-option-label">活跃度</span>
+                                <span class="card-option-label">热力图</span>
                             </div>
                             <div class="card-option" data-type="music">
                                 <svg><use xlink:href="#iconMusic"></use></svg>
