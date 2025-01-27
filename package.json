@@ -1,11 +1,11 @@
 {
-  "name": "plugin-sample-vite-svelte",
+  "name": "siyuan-plugin-sidebar-widget",
   "version": "1.0.0",
   "type": "module",
-  "description": "This is a sample plugin based on vite and svelte for Siyuan (https://b3log.org/siyuan)",
-  "repository": "",
+  "description": "this is a sidebar widgets plugin for siyuan",
+  "repository": "https://github.com/wu1233456/siyuan-plugin-sidebar-widget/releases/tag/v1.0.0",
   "homepage": "",
-  "author": "frostime",
+  "author": "wuchunlin",
   "license": "MIT",
   "scripts": {
     "dev": "cross-env NODE_ENV=development VITE_SOURCEMAP=inline vite build --watch",
