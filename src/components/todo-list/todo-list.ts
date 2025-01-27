@@ -28,7 +28,7 @@ export class TodoList {
 
     constructor(element: HTMLElement) {
         this.element = element;
-        this.configPath = "/data/storage/todo-list.json";
+        this.configPath = "/data/storage/siyuan-plugin-sidebar-widget/todo-list.json";
         this.initUI();
         this.loadConfig();
     }

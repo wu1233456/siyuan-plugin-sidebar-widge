@@ -22,7 +22,7 @@ export class HabitTracker {
 
     constructor(container: HTMLElement) {
         this.container = container;
-        this.configPath = "/data/storage/habit-tracker.json";
+        this.configPath = "/data/storage/siyuan-plugin-sidebar-widget/habit-tracker.json";
         this.loadConfig().then(() => {
             this.init();
             // 添加点击事件监听

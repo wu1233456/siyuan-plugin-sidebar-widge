@@ -29,7 +29,7 @@ export class MemorialDay {
         this.title = title;
         this.date = date;
         this.repeatType = repeatType;
-        this.configPath = "/data/storage/memorial-day.json";
+        this.configPath = "/data/storage/siyuan-plugin-sidebar-widget/memorial-day.json";
         this.loadConfig().then(() => {
             this.init();
             this.updateDays();

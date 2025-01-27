@@ -45,7 +45,7 @@ export class TomatoClock {
     private isSimpleCountdown: boolean = false;
     private hasHours: boolean = true;
     private lastSec: number = new Date().getSeconds();
-    private configPath: string = "/data/storage/tomato-clock.json";
+    private configPath: string = "/data/storage/siyuan-plugin-sidebar-widget/tomato-clock.json";
 
     constructor(container: HTMLElement) {
         this.container = container;

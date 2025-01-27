@@ -15,7 +15,7 @@ export class StickyNote {
 
     constructor(container: HTMLElement) {
         this.container = container;
-        this.configPath = "/data/storage/sticky-note.json";
+        this.configPath = "/data/storage/siyuan-plugin-sidebar-widget/sticky-note.json";
         this.content = '点击编辑内容';
         this.backgroundColor = '#FFE4B5';
         this.textColor = '#f3b670';

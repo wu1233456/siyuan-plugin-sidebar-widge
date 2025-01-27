@@ -2,7 +2,7 @@ import { putFile, getFile } from "../../api";
 
 export class Memo {
     private container: HTMLElement;
-    private storagePath: string = "/data/storage/memo.json";
+    private storagePath: string = "/data/storage/siyuan-plugin-sidebar-widget/memo.json";
     private content: string = "";
 
     constructor(container: HTMLElement) {

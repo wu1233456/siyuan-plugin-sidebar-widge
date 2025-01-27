@@ -12,7 +12,7 @@ export class Bookmark {
 
     constructor(element: HTMLElement) {
         this.element = element;
-        this.configPath = "/data/storage/bookmark.json";
+        this.configPath = "/data/storage/siyuan-plugin-sidebar-widget/bookmark.json";
         this.init();
         this.loadConfig().then(() => {
             this.renderBookmarks();
