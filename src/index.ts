@@ -18,6 +18,7 @@ import { DailyQuote } from "./components/daily-quote/daily-quote";
 import { Muyu } from "./components/muyu/muyu";
 import { RecentDocs } from "./components/recent-docs/recent-docs";
 import { Memo } from "./components/memo/memo";
+import { PhotoAlbum } from "./components/photo-album/photo-album";
 import { getFile, putFile } from "./api";
 
 const STORAGE_NAME = "menu-config";
@@ -39,6 +40,7 @@ export default class PluginSample extends Plugin {
     private muyu: Muyu;
     private recentDocs: RecentDocs;
     private memo: Memo;
+    private photoAlbum: PhotoAlbum;
     private layoutConfigPath: string = "/data/storage/sidebar-layout.json";
 
     async onload() {
@@ -86,6 +88,9 @@ export default class PluginSample extends Plugin {
 </symbol>
 <symbol id="iconMemo" viewBox="0 0 24 24">
     <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+</symbol>
+<symbol id="iconImage" viewBox="0 0 1024 1024">
+    <path d="M896 128h-96v64c0 35.3-28.7 64-64 64s-64-28.7-64-64v-64H352v64c0 35.3-28.7 64-64 64s-64-28.7-64-64v-64h-96c-35.3 0-64 28.7-64 64v640c0 35.3 28.7 64 64 64h768c35.3 0 64-28.7 64-64V192c0-35.3-28.7-64-64-64z m0 704H128V384h768v448zM288 64c-17.7 0-32 14.3-32 32v128c0 17.7 14.3 32 32 32s32-14.3 32-32V96c0-17.7-14.3-32-32-32z m448 0c-17.7 0-32 14.3-32 32v128c0 17.7 14.3 32 32 32s32-14.3 32-32V96c0-17.7-14.3-32-32-32z"></path>
 </symbol>`);
 
         // 修改卡片行样式
@@ -371,8 +376,13 @@ export default class PluginSample extends Plugin {
                     row.appendChild(card);
                     
                     // 添加上下文菜单事件
-                    card.addEventListener('contextmenu', (e: MouseEvent) => {
+                    card.addEventListener('mouseup', (e: MouseEvent) => {
+                        // 只处理右键点击
+                        if (e.button !== 2) return;
+                        
                         e.preventDefault();
+                        e.stopPropagation();
+                        
                         const menu = new Menu("cardOperation");
                         menu.addItem({
                             icon: "iconTrashcan",
@@ -427,6 +437,9 @@ export default class PluginSample extends Plugin {
                             break;
                         case 'memo':
                             this.memo = new Memo(card);
+                            break;
+                        case 'photo':
+                            this.photoAlbum = new PhotoAlbum(card);
                             break;
                     }
 
@@ -527,6 +540,10 @@ export default class PluginSample extends Plugin {
                                 <svg><use xlink:href="#iconMemo"></use></svg>
                                 <span class="card-option-label">备忘录</span>
                             </div>
+                            <div class="card-option" data-type="photo">
+                                <svg><use xlink:href="#iconImage"></use></svg>
+                                <span class="card-option-label">相册</span>
+                            </div>
                         </div>`,
                         width: "520px",
                     });
@@ -584,8 +601,13 @@ export default class PluginSample extends Plugin {
                                             row.appendChild(card);
                                             
                                             // 添加上下文菜单事件
-                                            card.addEventListener('contextmenu', (e: MouseEvent) => {
+                                            card.addEventListener('mouseup', (e: MouseEvent) => {
+                                                // 只处理右键点击
+                                                if (e.button !== 2) return;
+                                                
                                                 e.preventDefault();
+                                                e.stopPropagation();
+                                                
                                                 const menu = new Menu("cardOperation");
                                                 menu.addItem({
                                                     icon: "iconTrashcan",
@@ -640,6 +662,9 @@ export default class PluginSample extends Plugin {
                                                     break;
                                                 case 'memo':
                                                     this.memo = new Memo(card);
+                                                    break;
+                                                case 'photo':
+                                                    this.photoAlbum = new PhotoAlbum(card);
                                                     break;
                                             }
                                             
