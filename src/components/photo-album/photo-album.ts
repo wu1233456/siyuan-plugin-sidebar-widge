@@ -17,8 +17,10 @@ export class PhotoAlbum {
         this.configPath = "/data/storage/siyuan-plugin-sidebar-widget/photo-album.json";
         this.init();
         this.loadConfig().then(() => {
-            this.renderCurrentPhoto();
-            this.startAutoplay();
+            if (this.photos.length > 0) {
+                this.renderCurrentPhoto();
+                this.startAutoplay();
+            }
         });
     }
 
@@ -35,6 +37,7 @@ export class PhotoAlbum {
                 <div class="photo-display" style="
                     width: 100%;
                     height: 100%;
+                    position: relative;
                 "></div>
                 <div class="photo-title" style="
                     position: absolute;
@@ -62,16 +65,16 @@ export class PhotoAlbum {
     }
 
     private startAutoplay() {
-        if (this.autoplayInterval) {
-            clearInterval(this.autoplayInterval);
-        }
+        // 先清除可能存在的定时器
+        this.stopAutoplay();
         
-        this.autoplayInterval = setInterval(() => {
-            if (this.photos.length > 1) {
+        // 只有当有多张图片时才启动轮播
+        if (this.photos.length > 1) {
+            this.autoplayInterval = setInterval(() => {
                 this.currentPhotoIndex = (this.currentPhotoIndex + 1) % this.photos.length;
                 this.renderCurrentPhoto();
-            }
-        }, 5000); // 每5秒切换一次
+            }, 5000);
+        }
     }
 
     private stopAutoplay() {
@@ -87,7 +90,7 @@ export class PhotoAlbum {
             if (config) {
                 this.photos = config.photos || [];
             }
-            console.log("加载相册配置成功");
+            console.log("加载相册配置成功", this.photos);
         } catch (e) {
             console.log("加载相册配置失败，使用默认配置");
         }
@@ -110,14 +113,42 @@ export class PhotoAlbum {
         if (!photoDisplay || this.photos.length === 0) return;
 
         const currentPhoto = this.photos[this.currentPhotoIndex];
-        photoDisplay.innerHTML = `
-            <img src="${currentPhoto}" style="
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                object-position: center;
-            ">
+        const nextPhoto = this.photos[(this.currentPhotoIndex + 1) % this.photos.length];
+
+        // 预加载下一张图片
+        if (nextPhoto) {
+            const preloadImg = new Image();
+            preloadImg.src = nextPhoto;
+        }
+
+        // 创建新图片元素
+        const newImg = document.createElement('img');
+        newImg.src = currentPhoto;
+        newImg.style.cssText = `
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.5s ease;
         `;
+
+        // 清除旧图片
+        const oldImg = photoDisplay.querySelector('img');
+        if (oldImg) {
+            oldImg.style.opacity = '0';
+            setTimeout(() => oldImg.remove(), 500);
+        }
+
+        // 添加新图片
+        photoDisplay.appendChild(newImg);
+        // 强制重排后显示新图片
+        setTimeout(() => {
+            newImg.style.opacity = '1';
+        }, 50);
     }
 
     private showSettingsDialog() {
