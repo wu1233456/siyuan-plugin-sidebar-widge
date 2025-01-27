@@ -131,31 +131,56 @@ export default class PluginSample extends Plugin {
                 dock.element.style.gap = '5px';
                 dock.element.style.position = 'relative';
 
+                // 创建header容器
+                const header = document.createElement('div');
+                header.style.cssText = `
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: center;
+                    height: 32px;
+                    position: relative;
+                    padding: 0 8px;
+                    margin: -8px -8px 0 -8px;
+                `;
+
                 // 添加+号按钮
                 const addButton = document.createElement('button');
                 addButton.innerHTML = '+';
                 addButton.style.cssText = `
-                    width: 100%;
-                    height: 32px;
-                    border-radius: 16px;
-                    border: 1px dashed var(--b3-theme-primary);
-                    background: var(--b3-theme-surface);
-                    color: var(--b3-theme-primary);
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 4px;
+                    border: none;
+                    background: transparent;
+                    color: var(--b3-theme-on-surface);
                     cursor: pointer;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     font-size: 18px;
-                    margin-top: 8px;
+                    opacity: 0;
                     transition: all 0.2s ease;
                 `;
-                addButton.addEventListener('mouseover', () => {
-                    addButton.style.background = 'var(--b3-theme-primary-light)';
+
+                // 添加鼠标移入效果
+                header.addEventListener('mouseenter', () => {
+                    addButton.style.opacity = '1';
                 });
-                addButton.addEventListener('mouseout', () => {
-                    addButton.style.background = 'var(--b3-theme-surface)';
+
+                header.addEventListener('mouseleave', () => {
+                    addButton.style.opacity = '0';
                 });
-                dock.element.appendChild(addButton);
+
+                addButton.addEventListener('mouseenter', () => {
+                    addButton.style.background = 'var(--b3-theme-background-light)';
+                });
+
+                addButton.addEventListener('mouseleave', () => {
+                    addButton.style.background = 'transparent';
+                });
+
+                header.appendChild(addButton);
+                dock.element.insertBefore(header, dock.element.firstChild);
 
                 // 添加拖拽相关事件监听
                 const setupDragEvents = () => {
