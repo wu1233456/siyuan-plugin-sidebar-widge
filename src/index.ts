@@ -81,7 +81,7 @@ export default class PluginSample extends Plugin {
 <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64z m0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372z"></path>
 </symbol>`);
 
-        // 创建行容器
+        // 修改卡片行样式
         const createRow = () => {
             const row = document.createElement('div');
             row.className = 'card-row';
@@ -91,6 +91,7 @@ export default class PluginSample extends Plugin {
                 gap: 5px;
                 width: 100%;
                 min-height: min-content;
+                margin-bottom: 5px;
             `;
             return row;
         };
@@ -124,24 +125,52 @@ export default class PluginSample extends Plugin {
             type: DOCK_TYPE,
             init: (dock) => {
                 // 设置dock容器的内边距，确保有足够的空间
-                dock.element.style.padding = '8px';
+                dock.element.style.padding = '0 8px';
                 dock.element.style.boxSizing = 'border-box';
                 dock.element.style.display = 'flex';
                 dock.element.style.flexDirection = 'column';
-                dock.element.style.gap = '5px';
                 dock.element.style.position = 'relative';
 
                 // 创建header容器
                 const header = document.createElement('div');
                 header.style.cssText = `
                     display: flex;
-                    justify-content: flex-end;
+                    justify-content: space-between;
                     align-items: center;
                     height: 32px;
                     position: relative;
                     padding: 0 8px;
-                    margin: -8px -8px 0 -8px;
                 `;
+
+                // 创建左侧标题区域
+                const titleArea = document.createElement('div');
+                titleArea.style.cssText = `
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                `;
+
+                // 添加图标
+                const icon = document.createElement('svg');
+                icon.style.cssText = `
+                    width: 14px;
+                    height: 14px;
+                    fill: var(--b3-theme-on-surface);
+                `;
+                icon.innerHTML = '<use xlink:href="#iconSettings"></use>';
+
+                // 添加标题文字
+                const title = document.createElement('span');
+                title.textContent = '小组件';
+                title.style.cssText = `
+                    font-size: 13px;
+                    color: var(--b3-theme-on-surface);
+                    opacity: 0.86;
+                `;
+
+                titleArea.appendChild(icon);
+                titleArea.appendChild(title);
+                header.appendChild(titleArea);
 
                 // 添加+号按钮
                 const addButton = document.createElement('button');
