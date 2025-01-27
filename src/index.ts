@@ -17,6 +17,7 @@ import { Bookmark } from "./components/bookmark/bookmark";
 import { DailyQuote } from "./components/daily-quote/daily-quote";
 import { Muyu } from "./components/muyu/muyu";
 import { RecentDocs } from "./components/recent-docs/recent-docs";
+import { Memo } from "./components/memo/memo";
 import { getFile, putFile } from "./api";
 
 const STORAGE_NAME = "menu-config";
@@ -37,6 +38,7 @@ export default class PluginSample extends Plugin {
     private dailyQuote: DailyQuote;
     private muyu: Muyu;
     private recentDocs: RecentDocs;
+    private memo: Memo;
     private layoutConfigPath: string = "/data/storage/sidebar-layout.json";
 
     async onload() {
@@ -81,6 +83,9 @@ export default class PluginSample extends Plugin {
 </symbol>
 <symbol id="iconMuyu" viewBox="0 0 1024 1024">
 <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64z m0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372z"></path>
+</symbol>
+<symbol id="iconMemo" viewBox="0 0 24 24">
+    <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
 </symbol>`);
 
         // 修改卡片行样式
@@ -420,6 +425,9 @@ export default class PluginSample extends Plugin {
                         case 'recent':
                             this.recentDocs = new RecentDocs(card);
                             break;
+                        case 'memo':
+                            this.memo = new Memo(card);
+                            break;
                     }
 
                     // 为新卡片添加拖拽事件
@@ -514,6 +522,10 @@ export default class PluginSample extends Plugin {
                             <div class="card-option" data-type="recent">
                                 <svg><use xlink:href="#iconBookmark"></use></svg>
                                 <span class="card-option-label">最近文档</span>
+                            </div>
+                            <div class="card-option" data-type="memo">
+                                <svg><use xlink:href="#iconMemo"></use></svg>
+                                <span class="card-option-label">备忘录</span>
                             </div>
                         </div>`,
                         width: "520px",
@@ -625,6 +637,9 @@ export default class PluginSample extends Plugin {
                                                     break;
                                                 case 'recent':
                                                     this.recentDocs = new RecentDocs(card);
+                                                    break;
+                                                case 'memo':
+                                                    this.memo = new Memo(card);
                                                     break;
                                             }
                                             
