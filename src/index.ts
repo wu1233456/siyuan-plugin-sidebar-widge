@@ -20,6 +20,7 @@ import { RecentDocs } from "./components/recent-docs/recent-docs";
 import { Memo } from "./components/memo/memo";
 import { PhotoAlbum } from "./components/photo-album/photo-album";
 import { Heatmap } from "./components/heatmap/heatmap";
+import { MusicPlayer } from "./components/music-player/music-player";
 import { getFile, putFile } from "./api";
 
 const STORAGE_NAME = "menu-config";
@@ -43,6 +44,7 @@ export default class PluginSample extends Plugin {
     private memo: Memo;
     private photoAlbum: PhotoAlbum;
     private heatmap: Heatmap;
+    private musicPlayer: MusicPlayer;
     private layoutConfigPath: string = "/data/storage/sidebar-layout.json";
 
     async onload() {
@@ -93,6 +95,9 @@ export default class PluginSample extends Plugin {
 </symbol>
 <symbol id="iconImage" viewBox="0 0 1024 1024">
     <path d="M896 128h-96v64c0 35.3-28.7 64-64 64s-64-28.7-64-64v-64H352v64c0 35.3-28.7 64-64 64s-64-28.7-64-64v-64h-96c-35.3 0-64 28.7-64 64v640c0 35.3 28.7 64 64 64h768c35.3 0 64-28.7 64-64V192c0-35.3-28.7-64-64-64z m0 704H128V384h768v448zM288 64c-17.7 0-32 14.3-32 32v128c0 17.7 14.3 32 32 32s32-14.3 32-32V96c0-17.7-14.3-32-32-32z m448 0c-17.7 0-32 14.3-32 32v128c0 17.7 14.3 32 32 32s32-14.3 32-32V96c0-17.7-14.3-32-32-32z"></path>
+</symbol>
+<symbol id="iconMusic" viewBox="0 0 24 24">
+    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
 </symbol>`);
 
         // 修改卡片行样式
@@ -446,6 +451,9 @@ export default class PluginSample extends Plugin {
                         case 'heatmap':
                             this.heatmap = new Heatmap(card);
                             break;
+                        case 'music':
+                            this.musicPlayer = new MusicPlayer(card);
+                            break;
                     }
 
                     // 为新卡片添加拖拽事件
@@ -552,6 +560,10 @@ export default class PluginSample extends Plugin {
                             <div class="card-option" data-type="heatmap">
                                 <svg><use xlink:href="#iconCalendar"></use></svg>
                                 <span class="card-option-label">活跃度</span>
+                            </div>
+                            <div class="card-option" data-type="music">
+                                <svg><use xlink:href="#iconMusic"></use></svg>
+                                <span class="card-option-label">音乐播放器</span>
                             </div>
                         </div>`,
                         width: "520px",
@@ -677,6 +689,9 @@ export default class PluginSample extends Plugin {
                                                     break;
                                                 case 'heatmap':
                                                     this.heatmap = new Heatmap(card);
+                                                    break;
+                                                case 'music':
+                                                    this.musicPlayer = new MusicPlayer(card);
                                                     break;
                                             }
                                             
