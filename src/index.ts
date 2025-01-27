@@ -159,9 +159,9 @@ export default class PluginSample extends Plugin {
 
                 // 添加拖拽相关事件监听
                 const setupDragEvents = () => {
-                    const cards = dock.element.getElementsByClassName('card');
-                    let draggedCard: HTMLElement | null = null;
-                    let placeholder: HTMLElement | null = null;
+                const cards = dock.element.getElementsByClassName('card');
+                let draggedCard: HTMLElement | null = null;
+                let placeholder: HTMLElement | null = null;
 
                     const handleDragStart = (e: DragEvent) => {
                         draggedCard = e.target as HTMLElement;
@@ -278,15 +278,15 @@ export default class PluginSample extends Plugin {
                     // 为所有现有卡片添加拖拽事件
                     Array.from(cards).forEach(addDragEvents);
 
-                    // 为dock容器添加dragover事件
+                // 为dock容器添加dragover事件
                     const handleDockDragOver = (e: DragEvent) => {
-                        e.preventDefault();
-                        const target = e.target as HTMLElement;
-                        if (target === dock.element && placeholder) {
-                            const newRow = createRow();
-                            newRow.appendChild(placeholder);
-                            dock.element.appendChild(newRow);
-                        }
+                    e.preventDefault();
+                    const target = e.target as HTMLElement;
+                    if (target === dock.element && placeholder) {
+                        const newRow = createRow();
+                        newRow.appendChild(placeholder);
+                        dock.element.appendChild(newRow);
+                    }
                     };
 
                     dock.element.addEventListener('dragover', handleDockDragOver);
