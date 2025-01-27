@@ -20,7 +20,7 @@ export class Memo {
             border-top-right-radius: 16px;
             text-align: center;
             font-weight: bold;
-            color: #333;
+            color: #FFFFFF;
         `;
         header.textContent = '备忘录';
 
@@ -31,12 +31,14 @@ export class Memo {
             flex: 1;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
         `;
 
         // 创建文本输入框
         const textarea = document.createElement('textarea');
         textarea.style.cssText = `
-            width: 100%;
+            width: 90%;
             height: 150px;
             padding: 8px;
             border: none;
@@ -47,6 +49,7 @@ export class Memo {
             font-size: 14px;
             line-height: 1.5;
             outline: none;
+            margin: 0 auto;
         `;
 
         // 加载保存的内容
