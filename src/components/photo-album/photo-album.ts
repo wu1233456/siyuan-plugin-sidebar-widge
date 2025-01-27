@@ -124,6 +124,8 @@ export class PhotoAlbum {
         // 创建新图片元素
         const newImg = document.createElement('img');
         newImg.src = currentPhoto;
+        // 禁止拖动
+        newImg.draggable = false;
         newImg.style.cssText = `
             width: 100%;
             height: 100%;
@@ -134,6 +136,8 @@ export class PhotoAlbum {
             left: 0;
             opacity: 0;
             transition: opacity 0.5s ease;
+            user-select: none;
+            -webkit-user-drag: none;
         `;
 
         // 清除旧图片
