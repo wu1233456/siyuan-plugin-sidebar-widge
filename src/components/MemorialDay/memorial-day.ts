@@ -24,7 +24,7 @@ export class MemorialDay {
     private dateElement: HTMLElement;
     private configPath: string;
 
-    constructor(container: HTMLElement, title: string = "你在世界已经", date: Date = new Date('1997-10-01'), repeatType: RepeatType = RepeatType.NONE) {
+    constructor(container: HTMLElement, title: string = "你在世界已经", date: Date = new Date(), repeatType: RepeatType = RepeatType.NONE) {
         this.container = container;
         this.title = title;
         this.date = date;
@@ -42,9 +42,16 @@ export class MemorialDay {
             const config = await getFile(this.configPath);
             console.log("config", config);
             if (config) {
-                this.title = config.title;
-                this.date = new Date(config.date);
-                this.repeatType = config.repeatType;
+                this.title = config.title || this.title;
+                try {
+                    const dateValue = new Date(config.date);
+                    if (!isNaN(dateValue.getTime())) {
+                        this.date = dateValue;
+                    }
+                } catch (e) {
+                    console.error("日期格式无效，使用默认日期");
+                }
+                this.repeatType = config.repeatType || this.repeatType;
             }
             console.log("加载纪念日配置成功");
             console.log(this.title, this.date, this.repeatType);
