@@ -53,8 +53,12 @@ export class Memo {
         try {
             const savedContent = await getFile(this.storagePath);
             if (savedContent) {
-                this.content = savedContent;
-                textarea.value = this.content;
+                try {
+                    this.content = savedContent.content || "";
+                    textarea.value = this.content;
+                } catch (e) {
+                    console.log("解析备忘录内容失败");
+                }
             }
         } catch (e) {
             console.log("加载备忘录内容失败");
@@ -80,7 +84,10 @@ export class Memo {
 
     private async saveContent() {
         try {
-            await putFile(this.storagePath, false, new Blob([this.content], { type: "text/plain" }));
+            const data = {
+                content: this.content
+            };
+            await putFile(this.storagePath, false, new Blob([JSON.stringify(data)], { type: "application/json" }));
             console.log("保存备忘录内容成功");
         } catch (e) {
             console.error("保存备忘录内容失败", e);
