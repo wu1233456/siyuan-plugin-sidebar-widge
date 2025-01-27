@@ -43,10 +43,15 @@ export class StickyNote {
                     justify-content: center;
                 ">${this.content}</div>
                 <div class="sticky-note-toolbar" style="
-                    display: none;
-                    justify-content: center;
-                    width: 100%;
-                    padding: 8px 0;
+                    position: absolute;
+                    bottom: 10px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    display: flex;
+                    gap: 20px;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                    z-index: 2;
                 ">
                     <div class="color-button" style="
                         width: 32px;
@@ -79,11 +84,11 @@ export class StickyNote {
 
         // 显示/隐藏工具栏
         noteEl.addEventListener('mouseenter', () => {
-            toolbarEl.style.display = 'flex';
+            toolbarEl.style.opacity = '1';
         });
 
         noteEl.addEventListener('mouseleave', () => {
-            toolbarEl.style.display = 'none';
+            toolbarEl.style.opacity = '0';
         });
 
         // 编辑内容
