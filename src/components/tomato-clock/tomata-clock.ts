@@ -1,4 +1,19 @@
 import { Dialog, Menu, showMessage } from "siyuan";
+import { getFile, putFile } from "../../api";
+
+interface TomatoClockConfig {
+    showSeconds: boolean;
+    notification: boolean;
+    cardColor: string;
+    numberColor: string;
+    showShadow: boolean;
+    scrollingText: {
+        content: string;
+        fontSize: number;
+        color: string;
+        isBold: boolean;
+    };
+}
 
 export class TomatoClock {
     private container: HTMLElement;
@@ -30,6 +45,7 @@ export class TomatoClock {
     private isSimpleCountdown: boolean = false;
     private hasHours: boolean = true;
     private lastSec: number = new Date().getSeconds();
+    private configPath: string = "/data/storage/tomato-clock.json";
 
     constructor(container: HTMLElement) {
         this.container = container;
@@ -43,10 +59,55 @@ export class TomatoClock {
         this.notificationCheckbox.type = 'checkbox';
         this.notificationCheckbox.checked = true; // 默认开启通知
         
-        this.initElements();
-        this.initStyles();
-        this.initEvents();
-        this.run();
+        this.loadConfig().then(() => {
+            this.initElements();
+            this.initStyles();
+            this.initEvents();
+            this.run();
+        });
+    }
+
+    private async loadConfig() {
+        try {
+            const config = await getFile(this.configPath);
+            if (config) {
+                this.showSecondsCheckbox.checked = config.showSeconds ?? false;
+                this.notificationCheckbox.checked = config.notification ?? true;
+                this.applyCustomStyle(config.cardColor, config.numberColor, config.showShadow);
+                if (config.scrollingText) {
+                    this.scrollingText.textContent = config.scrollingText.content || '';
+                    this.scrollingText.style.fontSize = `${config.scrollingText.fontSize || 12}px`;
+                    this.scrollingText.style.color = config.scrollingText.color || 'var(--b3-theme-primary)';
+                    this.scrollingText.style.fontWeight = config.scrollingText.isBold ? 'bold' : 'normal';
+                    this.scrollingTextContainer.style.display = config.scrollingText.content ? 'flex' : 'none';
+                }
+            }
+            console.log("加载番茄钟配置成功");
+        } catch (e) {
+            console.log("加载番茄钟配置失败，使用默认配置");
+        }
+    }
+
+    private async saveConfig() {
+        const config: TomatoClockConfig = {
+            showSeconds: this.showSecondsCheckbox.checked,
+            notification: this.notificationCheckbox.checked,
+            cardColor: this.getCardColor(),
+            numberColor: this.getNumberColor(),
+            showShadow: this.hasClockShadow(),
+            scrollingText: {
+                content: this.scrollingText.textContent || '',
+                fontSize: parseInt(this.scrollingText.style.fontSize) || 12,
+                color: this.scrollingText.style.color || 'var(--b3-theme-primary)',
+                isBold: this.scrollingText.style.fontWeight === 'bold'
+            }
+        };
+        try {
+            await putFile(this.configPath, false, new Blob([JSON.stringify(config)], { type: "application/json" }));
+            console.log("保存番茄钟配置成功");
+        } catch (e) {
+            console.error("保存番茄钟配置失败", e);
+        }
     }
 
     private initElements() {
@@ -207,14 +268,14 @@ export class TomatoClock {
             width: 80%;
             overflow: hidden;
             height: 20px;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: center;
             margin: 5px auto;
         `;
 
         this.scrollingText = document.createElement('div');
-        this.scrollingText.textContent = '一定要认真搞好论文，再弄其他的，千万不要被其他事情分心';
+        this.scrollingText.textContent = '';
         this.scrollingText.style.cssText = `
             color: var(--b3-theme-primary);
             font-size: 12px;
@@ -225,7 +286,6 @@ export class TomatoClock {
         `;
 
         this.scrollingTextContainer.appendChild(this.scrollingText);
-        this.scrollingTextContainer.style.display = this.scrollingText.textContent.trim() ? 'flex' : 'none';
     }
 
     private createSettingsButton() {
@@ -928,115 +988,136 @@ export class TomatoClock {
                         </div>
                     </div>
                 </div>
+                <div class="b3-dialog__action" style="padding: 16px;">
+                    <button class="b3-button b3-button--cancel">取消</button>
+                    <div class="fn__space"></div>
+                    <button class="b3-button b3-button--text">保存</button>
+                </div>
             `,
             width: "520px",
         });
 
         // 绑定复选框事件
         const showSecondsCheckbox = dialog.element.querySelector('#show-seconds') as HTMLInputElement;
-        showSecondsCheckbox.addEventListener('change', () => {
+        const showNotificationCheckbox = dialog.element.querySelector('#show-notification') as HTMLInputElement;
+        const cardColorInput = dialog.element.querySelector('#card-color') as HTMLInputElement;
+        const numberColorInput = dialog.element.querySelector('#number-color') as HTMLInputElement;
+        const showShadowCheckbox = dialog.element.querySelector('#show-shadow') as HTMLInputElement;
+        const scrollingTextContent = dialog.element.querySelector('#scrolling-text-content') as HTMLTextAreaElement;
+        const scrollingTextSize = dialog.element.querySelector('#scrolling-text-size') as HTMLInputElement;
+        const scrollingTextColor = dialog.element.querySelector('#scrolling-text-color') as HTMLInputElement;
+        const scrollingTextBold = dialog.element.querySelector('#scrolling-text-bold') as HTMLInputElement;
+
+        // 绑定保存按钮事件
+        dialog.element.querySelector('.b3-button--text')?.addEventListener('click', async () => {
             if (this.showSecondsCheckbox) {
                 this.showSecondsCheckbox.checked = showSecondsCheckbox.checked;
                 if (!this.isCountingDown) {
                     this.secondGroup.style.display = this.showSecondsCheckbox.checked ? 'flex' : 'none';
                 }
             }
-        });
 
-        const showNotificationCheckbox = dialog.element.querySelector('#show-notification') as HTMLInputElement;
-        showNotificationCheckbox.addEventListener('change', () => {
             if (this.notificationCheckbox) {
                 this.notificationCheckbox.checked = showNotificationCheckbox.checked;
             }
-        });
-
-        // 添加保存按钮
-        const btns = document.createElement("div");
-        btns.className = "fn__flex b3-dialog__action";
-        btns.innerHTML = `
-            <button class="b3-button b3-button--cancel">取消</button>
-            <div class="fn__space"></div>
-            <button class="b3-button b3-button--text">保存</button>
-        `;
-        dialog.element.appendChild(btns);
-
-        // 绑定保存按钮事件
-        btns.querySelector('.b3-button--text')?.addEventListener('click', () => {
-            // 保存时钟样式设置
-            const cardColor = (dialog.element.querySelector('#card-color') as HTMLInputElement).value;
-            const numberColor = (dialog.element.querySelector('#number-color') as HTMLInputElement).value;
-            const showShadow = (dialog.element.querySelector('#show-shadow') as HTMLInputElement).checked;
 
             // 更新时钟样式
-            const style = document.createElement('style');
-            style.textContent = `
-                .col {
-                    background-color: ${cardColor} !important;
-                    box-shadow: ${showShadow ? '0 4px 8px rgba(0, 0, 0, 0.2)' : 'none'} !important;
-                }
-                .curr, .next {
-                    color: ${numberColor} !important;
-                    background-color: ${cardColor} !important;
-                }
-                .curr::before, .next::before {
-                    background-color: ${cardColor} !important;
-                    color: ${numberColor} !important;
-                }
-                .flip .curr::before, .flip .next::before {
-                    background-color: ${cardColor} !important;
-                    color: ${numberColor} !important;
-                }
-            `;
-            
-            const oldStyle = document.getElementById('clock-custom-style');
-            if (oldStyle) {
-                oldStyle.remove();
+            this.applyCustomStyle(
+                cardColorInput.value,
+                numberColorInput.value,
+                showShadowCheckbox.checked
+            );
+
+            // 更新滚动文字
+            this.scrollingText.textContent = scrollingTextContent.value;
+            this.scrollingText.style.fontSize = `${scrollingTextSize.value}px`;
+            this.scrollingText.style.color = scrollingTextColor.value;
+            this.scrollingText.style.fontWeight = scrollingTextBold.checked ? 'bold' : 'normal';
+            this.scrollingTextContainer.style.display = scrollingTextContent.value.trim() ? 'flex' : 'none';
+
+            // 保存配置
+            await this.saveConfig();
+
+            dialog.destroy();
+        });
+
+        // 绑定取消按钮事件
+        dialog.element.querySelector('.b3-button--cancel')?.addEventListener('click', () => {
+            dialog.destroy();
+        });
+    }
+
+    private applyCustomStyle(cardColor: string, numberColor: string, showShadow: boolean) {
+        const style = document.createElement('style');
+        style.textContent = `
+            .col {
+                background-color: ${cardColor} !important;
+                box-shadow: ${showShadow ? '0 4px 8px rgba(0, 0, 0, 0.2)' : 'none'} !important;
             }
-            style.id = 'clock-custom-style';
-            document.head.appendChild(style);
-
-            // 保存滚动文字设置
-            const content = (dialog.element.querySelector('#scrolling-text-content') as HTMLTextAreaElement).value;
-            const fontSize = (dialog.element.querySelector('#scrolling-text-size') as HTMLInputElement).value;
-            const textColor = (dialog.element.querySelector('#scrolling-text-color') as HTMLInputElement).value;
-            const isBold = (dialog.element.querySelector('#scrolling-text-bold') as HTMLInputElement).checked;
-
-            this.scrollingText.textContent = content;
-            this.scrollingText.style.fontSize = `${fontSize}px`;
-            this.scrollingText.style.color = textColor;
-            this.scrollingText.style.fontWeight = isBold ? 'bold' : 'normal';
-            this.scrollingTextContainer.style.display = content.trim() ? 'flex' : 'none';
-
-            dialog.destroy();
-        });
-
-        btns.querySelector('.b3-button--cancel')?.addEventListener('click', () => {
-            dialog.destroy();
-        });
+            .curr, .next {
+                color: ${numberColor} !important;
+                background-color: ${cardColor} !important;
+            }
+            .curr::before, .next::before {
+                background-color: ${cardColor} !important;
+                color: ${numberColor} !important;
+            }
+            .flip .curr::before, .flip .next::before {
+                background-color: ${cardColor} !important;
+                color: ${numberColor} !important;
+            }
+        `;
+        
+        const oldStyle = document.getElementById('clock-custom-style');
+        if (oldStyle) {
+            oldStyle.remove();
+        }
+        style.id = 'clock-custom-style';
+        document.head.appendChild(style);
     }
 
     private getCardColor(): string {
         const customStyle = document.getElementById('clock-custom-style');
         if (customStyle) {
             const styleContent = customStyle.textContent || '';
-            const cardColorMatch = styleContent.match(/background-color: (#[a-fA-F0-9]{6})/);
-            if (cardColorMatch) {
+            const cardColorMatch = styleContent.match(/background-color:\s*(#[a-fA-F0-9]{6}|rgba?\([^)]+\))\s*!important/);
+            if (cardColorMatch && cardColorMatch[1]) {
+                if (cardColorMatch[1].startsWith('rgb')) {
+                    return this.rgbToHex(cardColorMatch[1]);
+                }
                 return cardColorMatch[1];
             }
         }
-        return '#1e1e1e';
+        return '#ffffff'; // 默认白色
     }
 
     private getNumberColor(): string {
         const customStyle = document.getElementById('clock-custom-style');
         if (customStyle) {
             const styleContent = customStyle.textContent || '';
-            const numberColorMatch = styleContent.match(/::before.*?color: (#[a-fA-F0-9]{6})/s);
-            if (numberColorMatch) {
+            const numberColorMatch = styleContent.match(/\.curr,\s*\.next\s*{\s*color:\s*(#[a-fA-F0-9]{6}|rgba?\([^)]+\))\s*!important/);
+            if (numberColorMatch && numberColorMatch[1]) {
+                if (numberColorMatch[1].startsWith('rgb')) {
+                    return this.rgbToHex(numberColorMatch[1]);
+                }
                 return numberColorMatch[1];
             }
         }
-        return '#ffffff';
+        return '#000000'; // 默认黑色
+    }
+
+    private rgbToHex(rgb: string): string {
+        const rgbMatch = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+        if (!rgbMatch) return '#000000';
+        
+        const r = parseInt(rgbMatch[1]);
+        const g = parseInt(rgbMatch[2]);
+        const b = parseInt(rgbMatch[3]);
+        
+        return '#' + [r, g, b].map(x => {
+            const hex = x.toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+        }).join('');
     }
 
     private hasClockShadow(): boolean {
