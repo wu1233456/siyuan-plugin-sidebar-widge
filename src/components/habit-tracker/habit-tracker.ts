@@ -13,7 +13,7 @@ export class HabitTracker {
     private progressRing: SVGElement;
     private currentValue: number = 0;
     private targetValue: number = 8;
-    private title: string = "每天8杯水";
+    private title: string = "习惯打卡";
     private autoReset: boolean = true;
     private progressText: HTMLElement;
     private buttonsContainer: HTMLElement;
@@ -40,10 +40,10 @@ export class HabitTracker {
         try {
             const config = await getFile(this.configPath);
             if (config) {
-                this.currentValue = config.currentValue;
-                this.targetValue = config.targetValue;
-                this.title = config.title;
-                this.autoReset = config.autoReset;
+                this.currentValue = config.currentValue?config.currentValue:0;
+                this.targetValue = config.targetValue?config.targetValue:8;
+                this.title = config.title?config.title:"习惯打卡";
+                this.autoReset = config.autoReset?config.autoReset:true;
             }
             console.log("加载习惯追踪器配置成功");
         } catch (e) {
