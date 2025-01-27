@@ -28,11 +28,11 @@ export class MusicPlayer {
     private async init() {
         // 设置卡片样式
         this.container.style.cssText = `
-            padding: 16px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
             height: 120px;
+            width: 100%;
             background: var(--b3-theme-background);
             border-radius: 16px;
             overflow: hidden;
@@ -45,8 +45,9 @@ export class MusicPlayer {
         musicInfo.style.cssText = `
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            flex: 1;
+            gap: 2px;
+            margin-bottom: 8px;
+            width: 100%;
         `;
 
         const songTitle = document.createElement('div');
@@ -58,6 +59,8 @@ export class MusicPlayer {
             overflow: hidden;
             text-overflow: ellipsis;
             line-height: 1.2;
+            padding: 4px 0;
+            width: 100%;
         `;
         songTitle.textContent = '未知歌曲';
 
@@ -70,6 +73,8 @@ export class MusicPlayer {
             overflow: hidden;
             text-overflow: ellipsis;
             line-height: 1.2;
+            padding: 2px 0;
+            width: 100%;
         `;
         songArtist.textContent = '未知歌手';
 
@@ -82,29 +87,31 @@ export class MusicPlayer {
             display: flex;
             justify-content: flex-start;
             align-items: center;
-            gap: 24px;
-            padding: 8px 0;
+            gap: 20px;
+            margin-top: auto;
+            padding: 4px 0;
+            width: 100%;
         `;
 
         // 创建循环按钮
         const loopButton = this.createControlButton('iconRefresh', '循环播放');
         loopButton.style.cssText += `
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
         `;
 
         // 创建上一首按钮
         const prevButton = this.createControlButton('iconLeft', '上一首');
         prevButton.style.cssText += `
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
         `;
 
         // 创建播放按钮
         const playButton = this.createControlButton('iconPlay', '播放');
         playButton.style.cssText += `
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             color: var(--b3-theme-primary);
             opacity: 1;
         `;
@@ -112,15 +119,15 @@ export class MusicPlayer {
         // 创建下一首按钮
         const nextButton = this.createControlButton('iconRight', '下一首');
         nextButton.style.cssText += `
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
         `;
 
         // 创建菜单按钮
         const menuButton = this.createControlButton('iconMore', '播放列表');
         menuButton.style.cssText += `
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
         `;
 
         prevButton.addEventListener('click', () => this.playPrevious());
@@ -151,10 +158,10 @@ export class MusicPlayer {
 
     private createControlButton(iconName: string, title: string): HTMLButtonElement {
         const button = document.createElement('button');
-        button.innerHTML = `<svg style="width: 16px; height: 16px;"><use xlink:href="#${iconName}"></use></svg>`;
+        button.innerHTML = `<svg style="width: 14px; height: 14px;"><use xlink:href="#${iconName}"></use></svg>`;
         button.title = title;
         button.style.cssText = `
-            padding: 4px;
+            padding: 2px;
             background: transparent;
             border: none;
             cursor: pointer;
@@ -183,10 +190,12 @@ export class MusicPlayer {
             if (data) {
                 try {
                     this.playlist = JSON.parse(data as string);
+                    if (this.playlist.length > 0) {
+                        this.updateNowPlaying();
+                    }
                 } catch {
                     this.playlist = [];
                 }
-                this.renderPlaylist();
             }
         } catch (e) {
             console.log('加载播放列表失败');
@@ -202,97 +211,7 @@ export class MusicPlayer {
         }
     }
 
-    private renderPlaylist() {
-        const playlistContainer = this.container.querySelector('div:last-child') as HTMLElement;
-        playlistContainer.innerHTML = '';
-
-        this.playlist.forEach((song, index) => {
-            const songElement = document.createElement('div');
-            songElement.style.cssText = `
-                display: flex;
-                align-items: center;
-                padding: 8px;
-                gap: 8px;
-                cursor: pointer;
-                border-radius: 4px;
-                transition: background-color 0.2s;
-                ${index === this.currentSongIndex ? 'background: var(--b3-theme-primary-light);' : ''}
-            `;
-
-            const songInfo = document.createElement('div');
-            songInfo.style.cssText = `
-                flex: 1;
-                overflow: hidden;
-            `;
-
-            const title = document.createElement('div');
-            title.textContent = song.title;
-            title.style.cssText = `
-                font-size: 13px;
-                color: var(--b3-theme-on-background);
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            `;
-
-            const artist = document.createElement('div');
-            artist.textContent = song.artist;
-            artist.style.cssText = `
-                font-size: 12px;
-                color: var(--b3-theme-on-surface);
-                opacity: 0.8;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            `;
-
-            songInfo.appendChild(title);
-            songInfo.appendChild(artist);
-
-            const deleteButton = document.createElement('button');
-            deleteButton.innerHTML = '<svg><use xlink:href="#iconTrashcan"></use></svg>';
-            deleteButton.style.cssText = `
-                padding: 4px;
-                background: transparent;
-                border: none;
-                cursor: pointer;
-                color: var(--b3-theme-on-background);
-                opacity: 0;
-                transition: opacity 0.2s;
-            `;
-
-            songElement.addEventListener('mouseenter', () => {
-                songElement.style.backgroundColor = 'var(--b3-theme-background-light)';
-                deleteButton.style.opacity = '0.6';
-            });
-
-            songElement.addEventListener('mouseleave', () => {
-                if (index !== this.currentSongIndex) {
-                    songElement.style.backgroundColor = 'transparent';
-                }
-                deleteButton.style.opacity = '0';
-            });
-
-            songElement.addEventListener('click', (e) => {
-                if (e.target !== deleteButton) {
-                    this.playSong(index);
-                }
-            });
-
-            deleteButton.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                this.playlist.splice(index, 1);
-                await this.savePlaylist();
-                this.renderPlaylist();
-            });
-
-            songElement.appendChild(songInfo);
-            songElement.appendChild(deleteButton);
-            playlistContainer.appendChild(songElement);
-        });
-    }
-
-    private showAddSongDialog() {
+    private async showAddSongDialog() {
         const dialog = new Dialog({
             title: "添加音乐",
             content: `
@@ -383,7 +302,9 @@ export class MusicPlayer {
             if (title && artist && url) {
                 this.playlist.push({ title, artist, url });
                 await this.savePlaylist();
-                this.renderPlaylist();
+                if (this.playlist.length === 1) {
+                    this.playSong(0);
+                }
                 dialog.destroy();
             } else {
                 showMessage('请填写完整信息');
@@ -403,35 +324,36 @@ export class MusicPlayer {
                                 <div class="playlist-item" data-index="${index}" style="
                                     display: flex;
                                     align-items: center;
-                                    padding: 8px;
-                                    gap: 8px;
+                                    padding: 8px 12px;
                                     cursor: pointer;
                                     border-radius: 4px;
-                                    transition: background-color 0.2s;
-                                    ${index === this.currentSongIndex ? 'background: var(--b3-theme-primary-light);' : ''}
+                                    transition: all 0.2s;
+                                    position: relative;
+                                    background: ${index === this.currentSongIndex ? 'var(--b3-theme-primary-light)' : 'transparent'};
                                 ">
                                     <div style="flex: 1;">
-                                        <div style="font-size: 14px; margin-bottom: 2px;">${song.title}</div>
+                                        <div style="font-size: 14px; margin-bottom: 4px;">${song.title}</div>
                                         <div style="font-size: 12px; opacity: 0.8;">${song.artist}</div>
                                     </div>
                                     <button class="delete-song" data-index="${index}" style="
-                                        padding: 4px;
-                                        background: transparent;
+                                        padding: 4px 8px;
+                                        background: var(--b3-theme-error);
+                                        color: white;
                                         border: none;
+                                        border-radius: 4px;
                                         cursor: pointer;
-                                        opacity: 0.6;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
+                                        font-size: 12px;
+                                        opacity: 0;
+                                        transition: opacity 0.2s;
                                     ">
-                                        <svg style="width: 14px; height: 14px;"><use xlink:href="#iconTrashcan"></use></svg>
+                                        删除
                                     </button>
                                 </div>
                             `).join('')
                         }
                     </div>
-                    <div style="margin-top: 16px; text-align: center;">
-                        <button class="add-song-button b3-button b3-button--outline" style="
+                    <div style="margin-top: 16px; text-align: right;">
+                        <button class="add-song-button b3-button b3-button--text" style="
                             padding: 6px 16px;
                             border-radius: 4px;
                             font-size: 14px;
@@ -447,15 +369,45 @@ export class MusicPlayer {
         // 添加事件监听
         const container = dialog.element.querySelector('.playlist-container');
         if (container) {
-            container.addEventListener('click', (e) => {
+            // 添加鼠标悬浮效果
+            container.addEventListener('mouseover', (e) => {
                 const target = e.target as HTMLElement;
                 const item = target.closest('.playlist-item') as HTMLElement;
+                if (item) {
+                    const deleteButton = item.querySelector('.delete-song') as HTMLElement;
+                    if (deleteButton) {
+                        deleteButton.style.opacity = '1';
+                    }
+                }
+            });
+
+            container.addEventListener('mouseout', (e) => {
+                const target = e.target as HTMLElement;
+                const item = target.closest('.playlist-item') as HTMLElement;
+                if (item) {
+                    const deleteButton = item.querySelector('.delete-song') as HTMLElement;
+                    if (deleteButton) {
+                        deleteButton.style.opacity = '0';
+                    }
+                }
+            });
+
+            container.addEventListener('click', async (e) => {
+                const target = e.target as HTMLElement;
                 const deleteButton = target.closest('.delete-song');
+                const item = target.closest('.playlist-item') as HTMLElement;
 
                 if (deleteButton) {
+                    e.stopPropagation();
                     const index = parseInt(deleteButton.getAttribute('data-index') || '0');
                     this.playlist.splice(index, 1);
-                    this.savePlaylist();
+                    if (index === this.currentSongIndex) {
+                        this.currentSongIndex = 0;
+                        this.updateNowPlaying();
+                    } else if (index < this.currentSongIndex) {
+                        this.currentSongIndex--;
+                    }
+                    await this.savePlaylist();
                     dialog.destroy();
                     this.showPlaylistDialog();
                 } else if (item) {
@@ -472,6 +424,64 @@ export class MusicPlayer {
             addButton.addEventListener('click', () => {
                 dialog.destroy();
                 this.showAddSongDialog();
+            });
+        }
+    }
+
+    private showSettingsDialog() {
+        const dialog = new Dialog({
+            title: "音乐播放器设置",
+            content: `
+                <div class="b3-dialog__content" style="padding: 16px;">
+                    <div class="playlist-container" style="max-height: 300px; overflow-y: auto;">
+                        ${this.playlist.length === 0 ? 
+                            '<div style="text-align: center; padding: 20px; color: var(--b3-theme-on-surface); opacity: 0.6;">播放列表为空</div>' :
+                            this.playlist.map((song, index) => `
+                                <div class="playlist-item" style="
+                                    display: flex;
+                                    align-items: center;
+                                    padding: 8px 12px;
+                                    border-radius: 4px;
+                                    margin-bottom: 8px;
+                                    background: var(--b3-theme-surface);
+                                ">
+                                    <div style="flex: 1;">
+                                        <div style="font-size: 14px; margin-bottom: 4px;">${song.title}</div>
+                                        <div style="font-size: 12px; opacity: 0.8;">${song.artist}</div>
+                                    </div>
+                                    <button class="delete-song" data-index="${index}" style="
+                                        padding: 4px 8px;
+                                        background: var(--b3-theme-error);
+                                        color: white;
+                                        border: none;
+                                        border-radius: 4px;
+                                        cursor: pointer;
+                                        font-size: 12px;
+                                    ">
+                                        删除
+                                    </button>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                </div>
+            `,
+            width: "400px",
+        });
+
+        // 添加删除按钮事件
+        const container = dialog.element.querySelector('.playlist-container');
+        if (container) {
+            container.addEventListener('click', async (e) => {
+                const target = e.target as HTMLElement;
+                const deleteButton = target.closest('.delete-song');
+                if (deleteButton) {
+                    const index = parseInt(deleteButton.getAttribute('data-index') || '0');
+                    this.playlist.splice(index, 1);
+                    await this.savePlaylist();
+                    dialog.destroy();
+                    this.showSettingsDialog();
+                }
             });
         }
     }
