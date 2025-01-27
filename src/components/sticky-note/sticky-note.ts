@@ -1,16 +1,57 @@
+import { getFile, putFile } from "../../api";
+
+interface StickyNoteConfig {
+    content: string;
+    backgroundColor: string;
+    textColor: string;
+}
+
 export class StickyNote {
     private container: HTMLElement;
     private content: string;
     private backgroundColor: string;
     private textColor: string;
+    private configPath: string;
 
     constructor(container: HTMLElement) {
         this.container = container;
-        this.content = localStorage.getItem('sticky-note-content') || '点击编辑内容';
-        this.backgroundColor = localStorage.getItem('sticky-note-color') || '#FFE4B5';
-        this.textColor = localStorage.getItem('sticky-note-text-color') || '#f3b670';
-        this.render();
-        this.bindEvents();
+        this.configPath = "/data/storage/sticky-note.json";
+        this.content = '点击编辑内容';
+        this.backgroundColor = '#FFE4B5';
+        this.textColor = '#f3b670';
+        
+        this.loadConfig().then(() => {
+            this.render();
+            this.bindEvents();
+        });
+    }
+
+    private async loadConfig() {
+        try {
+            const config = await getFile(this.configPath);
+            if (config) {
+                this.content = config.content;
+                this.backgroundColor = config.backgroundColor;
+                this.textColor = config.textColor;
+            }
+            console.log("加载便利贴配置成功");
+        } catch (e) {
+            console.log("加载便利贴配置失败，使用默认配置");
+        }
+    }
+
+    private async saveConfig() {
+        const config: StickyNoteConfig = {
+            content: this.content,
+            backgroundColor: this.backgroundColor,
+            textColor: this.textColor
+        };
+        try {
+            await putFile(this.configPath, false, new Blob([JSON.stringify(config)], { type: "application/json" }));
+            console.log("保存便利贴配置成功");
+        } catch (e) {
+            console.error("保存便利贴配置失败", e);
+        }
     }
 
     private render() {
@@ -100,7 +141,7 @@ export class StickyNote {
         contentEl.addEventListener('blur', () => {
             contentEl.setAttribute('contenteditable', 'false');
             this.content = contentEl.innerHTML;
-            localStorage.setItem('sticky-note-content', this.content);
+            this.saveConfig();
         });
 
         // 颜色配置：[背景色, 文字色]
@@ -133,8 +174,7 @@ export class StickyNote {
             this.textColor = colorPairs[nextIndex][1];
             noteEl.style.backgroundColor = this.backgroundColor;
             noteEl.style.color = this.textColor;
-            localStorage.setItem('sticky-note-color', this.backgroundColor);
-            localStorage.setItem('sticky-note-text-color', this.textColor);
+            this.saveConfig();
         });
     }
 } 

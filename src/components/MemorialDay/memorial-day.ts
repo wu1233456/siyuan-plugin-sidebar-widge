@@ -1,4 +1,11 @@
 import { Dialog } from "siyuan";
+import { getFile, putFile } from "../../api";
+
+interface MemorialDayConfig {
+    title: string;
+    date: string;
+    repeatType: RepeatType;
+}
 
 export enum RepeatType {
     NONE = "不重复",
@@ -15,15 +22,49 @@ export class MemorialDay {
     private repeatType: RepeatType;
     private titleElement: HTMLElement;
     private dateElement: HTMLElement;
+    private configPath: string;
 
     constructor(container: HTMLElement, title: string = "你在世界已经", date: Date = new Date('1997-10-01'), repeatType: RepeatType = RepeatType.NONE) {
         this.container = container;
         this.title = title;
         this.date = date;
         this.repeatType = repeatType;
-        this.init();
-        this.updateDays();
-        setInterval(() => this.updateDays(), 1000 * 60 * 60); // 每小时更新一次
+        this.configPath = "/data/storage/memorial-day.json";
+        this.loadConfig().then(() => {
+            this.init();
+            this.updateDays();
+            setInterval(() => this.updateDays(), 1000 * 60 * 60); // 每小时更新一次
+        });
+    }
+
+    private async loadConfig() {
+        try {
+            const config = await getFile(this.configPath);
+            console.log("config", config);
+            if (config) {
+                this.title = config.title;
+                this.date = new Date(config.date);
+                this.repeatType = config.repeatType;
+            }
+            console.log("加载纪念日配置成功");
+            console.log(this.title, this.date, this.repeatType);
+        } catch (e) {
+            console.log("加载纪念日配置失败，使用默认配置");
+        }
+    }
+
+    private async saveConfig() {
+        const config: MemorialDayConfig = {
+            title: this.title,
+            date: this.formatDate(this.date),
+            repeatType: this.repeatType
+        };
+        try {
+            await putFile(this.configPath, false, new Blob([JSON.stringify(config)], { type: "application/json" }));
+            console.log("保存纪念日配置成功");
+        } catch (e) {
+            console.error("保存纪念日配置失败", e);
+        }
     }
 
     private init() {
@@ -290,7 +331,7 @@ export class MemorialDay {
             saveButton.style.opacity = '1';
         });
 
-        saveButton.addEventListener("click", () => {
+        saveButton.addEventListener("click", async () => {
             const titleInput = dialog.element.querySelector('input[type="text"]') as HTMLInputElement;
             const dateInput = dialog.element.querySelector('input[type="date"]') as HTMLInputElement;
             const repeatSelect = dialog.element.querySelector('select') as HTMLSelectElement;
@@ -307,6 +348,9 @@ export class MemorialDay {
             // 更新日历
             const calendarContainer = this.container.querySelector('.memorial-day-card > div:last-child') as HTMLElement;
             this.updateCalendar(calendarContainer);
+            
+            // 保存配置
+            await this.saveConfig();
             
             dialog.destroy();
         });

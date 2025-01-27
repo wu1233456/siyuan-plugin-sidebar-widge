@@ -1,34 +1,165 @@
 import { Dialog } from "siyuan";
+import { getFile, putFile } from "../../api";
+
+interface TodoItem {
+    id: number;
+    text: string;
+    completed: boolean;
+    dueDate?: Date;
+}
+
+interface TodoItemStorage {
+    id: number;
+    text: string;
+    completed: boolean;
+    dueDate?: string;
+}
+
+interface TodoListConfig {
+    todos: TodoItemStorage[];
+    nextId: number;
+}
 
 export class TodoList {
     private element: HTMLElement;
-    private todos: { id: number; text: string; completed: boolean; dueDate?: Date }[] = [];
+    private todos: TodoItem[] = [];
     private nextId = 1;
+    private configPath: string;
 
     constructor(element: HTMLElement) {
         this.element = element;
+        this.configPath = "/data/storage/todo-list.json";
         this.initUI();
-        this.loadTodos();
+        this.loadConfig();
+    }
+
+    private async loadConfig() {
+        try {
+            const config = await getFile(this.configPath);
+            if (config) {
+                this.todos = (config.todos as TodoItemStorage[]).map(todo => ({
+                    id: todo.id,
+                    text: todo.text,
+                    completed: todo.completed,
+                    dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined
+                }));
+                this.nextId = config.nextId;
+                this.renderTodos();
+                console.log("加载待办事项配置成功");
+            }
+        } catch (e) {
+            console.log("加载待办事项配置失败，使用默认配置");
+            this.loadFromLocalStorage();
+        }
+    }
+
+    private async saveConfig() {
+        const config: TodoListConfig = {
+            todos: this.todos.map(todo => ({
+                id: todo.id,
+                text: todo.text,
+                completed: todo.completed,
+                dueDate: todo.dueDate ? todo.dueDate.toISOString() : undefined
+            })),
+            nextId: this.nextId
+        };
+        try {
+            await putFile(this.configPath, false, new Blob([JSON.stringify(config)], { type: "application/json" }));
+            console.log("保存待办事项配置成功");
+            this.saveToLocalStorage();
+        } catch (e) {
+            console.error("保存待办事项配置失败", e);
+            this.saveToLocalStorage();
+        }
+    }
+
+    private loadFromLocalStorage() {
+        const saved = localStorage.getItem('todo-list');
+        if (saved) {
+            const data = JSON.parse(saved);
+            this.todos = data.todos.map((todo: any) => ({
+                ...todo,
+                dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined
+            }));
+            this.nextId = data.nextId;
+            this.renderTodos();
+        }
+    }
+
+    private saveToLocalStorage() {
+        localStorage.setItem('todo-list', JSON.stringify({
+            todos: this.todos,
+            nextId: this.nextId
+        }));
     }
 
     private initUI() {
         this.element.innerHTML = `
-            <div class="todo-list-container" style="padding: 10px; height: 100%;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <div style="font-weight: bold; font-size: 14px;">待办事项</div>
-                    <div class="todo-add-btn" style="cursor: pointer;">
+            <div class="todo-list-container" style="
+                height: 100%;
+                display: flex;
+                background: var(--b3-theme-background);
+                border-radius: 12px;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            ">
+                <!-- 左侧面板 -->
+                <div style="
+                    width: 40px;
+                    padding: 12px 8px;
+                    background: var(--b3-theme-surface);
+                    border-radius: 12px 0 0 12px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                ">
+                    <div style="
+                        font-size: 16px;
+                        font-weight: 600;
+                        color: var(--b3-theme-on-background);
+                        text-align: center;
+                    ">${this.todos.length}</div>
+                    <div style="
+                        font-size: 11px;
+                        color: var(--b3-theme-on-surface-light);
+                        text-align: center;
+                    ">待办事项</div>
+                    <div class="todo-add-btn" style="
+                        cursor: pointer;
+                        width: 24px;
+                        height: 24px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        background: #4285f4;
+                        color: white;
+                        margin: auto auto 0;
+                        transition: all 0.2s ease;
+                    ">
                         <svg class="todo-add-icon" viewBox="0 0 24 24" width="16" height="16">
                             <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                         </svg>
                     </div>
                 </div>
-                <div class="todo-list" style="overflow-y: auto; max-height: calc(100% - 40px);"></div>
+                <!-- 右侧列表 -->
+                <div class="todo-list" style="
+                    flex: 1;
+                    padding: 12px;
+                    overflow-y: auto;
+                "></div>
             </div>
         `;
 
         const addBtn = this.element.querySelector('.todo-add-btn');
         if (addBtn) {
             addBtn.addEventListener('click', () => this.showAddDialog());
+            // 添加悬停效果
+            addBtn.addEventListener('mouseover', () => {
+                (addBtn as HTMLElement).style.transform = 'scale(1.1)';
+            });
+            addBtn.addEventListener('mouseout', () => {
+                (addBtn as HTMLElement).style.transform = 'scale(1)';
+            });
         }
 
         this.renderTodos();
@@ -156,7 +287,7 @@ export class TodoList {
             completed: false,
             dueDate
         });
-        this.saveTodos();
+        this.saveConfig();
         this.renderTodos();
     }
 
@@ -164,14 +295,14 @@ export class TodoList {
         const todo = this.todos.find(t => t.id === id);
         if (todo) {
             todo.completed = !todo.completed;
-            this.saveTodos();
+            this.saveConfig();
             this.renderTodos();
         }
     }
 
     private deleteTodo(id: number) {
         this.todos = this.todos.filter(t => t.id !== id);
-        this.saveTodos();
+        this.saveConfig();
         this.renderTodos();
     }
 
@@ -195,60 +326,130 @@ export class TodoList {
             todoElement.style.cssText = `
                 display: flex;
                 align-items: center;
-                padding: 6px;
-                border-bottom: 1px solid var(--b3-theme-surface-lighter);
+                padding: 4px 8px;
+                margin-bottom: 2px;
+                border-radius: 4px;
+                background: var(--b3-theme-surface);
                 gap: 6px;
-                font-size: 13px;
+                cursor: pointer;
+                min-width: 0;
+                height: 22px;
             `;
+            
+            // 为整个待办事项添加点击事件
+            todoElement.addEventListener('click', (e) => {
+                // 如果点击的是复选框或删除按钮，不触发弹窗
+                const target = e.target as HTMLElement;
+                if (!(target instanceof HTMLInputElement) && 
+                    !target.closest('.todo-delete-btn')) {
+                    this.showAllTodosDialog();
+                }
+            });
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.checked = todo.completed;
-            checkbox.style.transform = 'scale(0.9)';
-            checkbox.addEventListener('change', () => this.toggleTodo(todo.id));
-
-            const contentContainer = document.createElement('div');
-            contentContainer.style.cssText = `
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                gap: 2px;
+            checkbox.style.cssText = `
+                width: 12px;
+                height: 12px;
                 cursor: pointer;
+                accent-color: var(--b3-theme-primary);
+                flex-shrink: 0;
             `;
-            contentContainer.addEventListener('click', () => this.showEditDialog(todo));
+            checkbox.addEventListener('change', () => {
+                this.toggleTodo(todo.id);
+            });
 
             const text = document.createElement('span');
             text.textContent = todo.text;
             text.style.cssText = `
-                font-size: 13px;
-                ${todo.completed ? 'text-decoration: line-through; color: var(--b3-theme-on-surface-light);' : ''}
+                flex: 1;
+                font-size: 12px;
+                color: var(--b3-theme-on-background);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                ${todo.completed ? 'text-decoration: line-through; opacity: 0.6;' : ''}
             `;
 
-            contentContainer.appendChild(text);
-
-            if (todo.dueDate) {
-                const dateText = document.createElement('span');
-                dateText.textContent = this.formatDate(todo.dueDate);
-                dateText.style.cssText = `
-                    font-size: 11px;
-                    color: var(--b3-theme-on-surface-light);
-                `;
-                contentContainer.appendChild(dateText);
-            }
-
             const deleteBtn = document.createElement('div');
+            deleteBtn.className = 'todo-delete-btn';
             deleteBtn.innerHTML = `
-                <svg viewBox="0 0 24 24" width="14" height="14">
+                <svg viewBox="0 0 24 24" width="12" height="12">
                     <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
                 </svg>
             `;
-            deleteBtn.style.cursor = 'pointer';
-            deleteBtn.addEventListener('click', () => this.deleteTodo(todo.id));
+            deleteBtn.style.cssText = `
+                opacity: 0.6;
+                cursor: pointer;
+                padding: 2px;
+                border-radius: 2px;
+                flex-shrink: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.deleteTodo(todo.id);
+            });
 
             todoElement.appendChild(checkbox);
-            todoElement.appendChild(contentContainer);
+            todoElement.appendChild(text);
             todoElement.appendChild(deleteBtn);
             listElement.appendChild(todoElement);
+        });
+    }
+
+    private showAllTodosDialog() {
+        const dialog = new Dialog({
+            title: "全部待办事项",
+            content: `
+                <div class="b3-dialog__content" style="
+                    padding: 20px;
+                    max-height: 70vh;
+                    overflow-y: auto;
+                ">
+                    ${this.todos.map(todo => `
+                        <div style="
+                            display: flex;
+                            align-items: center;
+                            padding: 8px;
+                            border-bottom: 1px solid var(--b3-theme-surface-lighter);
+                            gap: 8px;
+                        ">
+                            <input type="checkbox" ${todo.completed ? 'checked' : ''} 
+                                style="width: 14px; height: 14px; accent-color: var(--b3-theme-primary);"
+                                onchange="window.todoList_${this.nextId}_toggleTodo(${todo.id})"
+                            >
+                            <span style="
+                                flex: 1;
+                                font-size: 14px;
+                                ${todo.completed ? 'text-decoration: line-through; opacity: 0.6;' : ''}
+                            ">${todo.text}</span>
+                            ${todo.dueDate ? `
+                                <span style="
+                                    font-size: 12px;
+                                    color: var(--b3-theme-on-surface-light);
+                                ">${this.formatDate(todo.dueDate)}</span>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `,
+            width: "500px",
+        });
+
+        // 添加全局函数用于复选框切换
+        (window as any)[`todoList_${this.nextId}_toggleTodo`] = (id: number) => {
+            this.toggleTodo(id);
+            dialog.destroy();
+            this.showAllTodosDialog();
+        };
+
+        // 清理全局函数
+        dialog.element.addEventListener('close', () => {
+            delete (window as any)[`todoList_${this.nextId}_toggleTodo`];
         });
     }
 
@@ -361,7 +562,7 @@ export class TodoList {
         if (todo) {
             todo.text = text;
             todo.dueDate = dueDate;
-            this.saveTodos();
+            this.saveConfig();
             this.renderTodos();
         }
     }
@@ -373,25 +574,5 @@ export class TodoList {
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
         return `${year}-${month}-${day}T${hours}:${minutes}`;
-    }
-
-    private saveTodos() {
-        localStorage.setItem('todo-list', JSON.stringify({
-            todos: this.todos,
-            nextId: this.nextId
-        }));
-    }
-
-    private loadTodos() {
-        const saved = localStorage.getItem('todo-list');
-        if (saved) {
-            const data = JSON.parse(saved);
-            this.todos = data.todos.map((todo: any) => ({
-                ...todo,
-                dueDate: todo.dueDate ? new Date(todo.dueDate) : undefined
-            }));
-            this.nextId = data.nextId;
-            this.renderTodos();
-        }
     }
 } 

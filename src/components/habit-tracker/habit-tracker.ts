@@ -1,4 +1,12 @@
 import { Dialog } from "siyuan";
+import { getFile, putFile } from "../../api";
+
+interface HabitTrackerConfig {
+    currentValue: number;
+    targetValue: number;
+    title: string;
+    autoReset: boolean;
+}
 
 export class HabitTracker {
     private container: HTMLElement;
@@ -6,22 +14,56 @@ export class HabitTracker {
     private currentValue: number = 0;
     private targetValue: number = 8;
     private title: string = "每天8杯水";
+    private autoReset: boolean = true;
     private progressText: HTMLElement;
     private buttonsContainer: HTMLElement;
     private titleElement: HTMLElement;
+    private configPath: string;
 
     constructor(container: HTMLElement) {
         this.container = container;
-        this.init();
-        
-        // 添加点击事件监听
-        this.container.addEventListener('click', (e) => {
-            // 如果点击的是按钮，不触发设置对话框
-            if ((e.target as HTMLElement).closest('.habit-buttons')) {
-                return;
-            }
-            this.showSettingsDialog();
+        this.configPath = "/data/storage/habit-tracker.json";
+        this.loadConfig().then(() => {
+            this.init();
+            // 添加点击事件监听
+            this.container.addEventListener('click', (e) => {
+                // 如果点击的是按钮，不触发设置对话框
+                if ((e.target as HTMLElement).closest('.habit-buttons')) {
+                    return;
+                }
+                this.showSettingsDialog();
+            });
         });
+    }
+
+    private async loadConfig() {
+        try {
+            const config = await getFile(this.configPath);
+            if (config) {
+                this.currentValue = config.currentValue;
+                this.targetValue = config.targetValue;
+                this.title = config.title;
+                this.autoReset = config.autoReset;
+            }
+            console.log("加载习惯追踪器配置成功");
+        } catch (e) {
+            console.log("加载习惯追踪器配置失败，使用默认配置");
+        }
+    }
+
+    private async saveConfig() {
+        const config: HabitTrackerConfig = {
+            currentValue: this.currentValue,
+            targetValue: this.targetValue,
+            title: this.title,
+            autoReset: this.autoReset
+        };
+        try {
+            await putFile(this.configPath, false, new Blob([JSON.stringify(config)], { type: "application/json" }));
+            console.log("保存习惯追踪器配置成功");
+        } catch (e) {
+            console.error("保存习惯追踪器配置失败", e);
+        }
     }
 
     private init() {
@@ -219,6 +261,7 @@ export class HabitTracker {
     public setCurrentValue(value: number) {
         if (value >= 0 && value <= this.targetValue) {
             this.updateProgress(value);
+            this.saveConfig();
         }
     }
 
@@ -227,6 +270,7 @@ export class HabitTracker {
         if (value > 0) {
             this.targetValue = value;
             this.updateProgress(this.currentValue);
+            this.saveConfig();
         }
     }
 
@@ -236,6 +280,13 @@ export class HabitTracker {
         if (this.titleElement) {
             this.titleElement.textContent = title;
         }
+        this.saveConfig();
+    }
+
+    // 公共方法：设置是否自动重置
+    public setAutoReset(value: boolean) {
+        this.autoReset = value;
+        this.saveConfig();
     }
 
     private showSettingsDialog() {
