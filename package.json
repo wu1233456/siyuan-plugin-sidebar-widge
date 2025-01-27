@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "this is a sidebar widgets plugin for siyuan",
-  "repository": "https://github.com/wu1233456/siyuan-plugin-sidebar-widget/releases/tag/v1.0.0",
+  "repository": "https://github.com/wu1233456/siyuan-plugin-sidebar-widget",
   "homepage": "",
   "author": "wuchunlin",
   "license": "MIT",
