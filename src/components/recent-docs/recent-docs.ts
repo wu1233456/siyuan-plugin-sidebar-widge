@@ -1,4 +1,5 @@
 import { getFile } from "../../api";
+import { openTab, openMobileFileById, getFrontend } from 'siyuan';
 
 interface RecentDoc {
     rootID: string;
@@ -10,10 +11,13 @@ export class RecentDocs {
     private element: HTMLElement;
     private recentDocs: RecentDoc[] = [];
     private readonly STORAGE_PATH = "/data/storage/recent-doc.json";
+    private isMobile: boolean;
 
     constructor(element: HTMLElement) {
         this.element = element;
         this.element.classList.add('recent-docs');
+        const frontEnd = getFrontend();
+        this.isMobile = frontEnd === "mobile" || frontEnd === "browser-mobile";
         this.init();
     }
 
@@ -24,12 +28,21 @@ export class RecentDocs {
         header.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <div style="font-weight: bold; font-size: 13px;">最近文档</div>
-                <div class="card-icon">
-                    <svg><use xlink:href="#iconBookmark"></use></svg>
+                <div class="refresh-button" title="刷新">
+                    <svg><use xlink:href="#iconRefresh"></use></svg>
                 </div>
             </div>
         `;
         this.element.appendChild(header);
+
+        // 添加刷新按钮点击事件
+        const refreshButton = header.querySelector('.refresh-button');
+        if (refreshButton) {
+            refreshButton.addEventListener('click', async () => {
+                await this.loadRecentDocs();
+                this.render();
+            });
+        }
 
         // 创建内容容器
         const content = document.createElement('div');
@@ -52,6 +65,27 @@ export class RecentDocs {
             }
             .recent-docs .card-header {
                 padding: 8px;
+            }
+            .recent-docs .refresh-button {
+                color: var(--b3-theme-on-surface);
+                opacity: 0.6;
+                cursor: pointer;
+                width: 20px;
+                height: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 4px;
+                transition: all 0.2s ease;
+            }
+            .recent-docs .refresh-button:hover {
+                opacity: 1;
+                background-color: var(--b3-theme-surface-lighter);
+            }
+            .recent-docs .refresh-button svg {
+                width: 14px;
+                height: 14px;
+                fill: currentColor;
             }
             .recent-docs .card-icon {
                 color: var(--b3-theme-on-surface);
@@ -123,6 +157,20 @@ export class RecentDocs {
         }
     }
 
+    private async openDoc(docId: string) {
+        if (this.isMobile) {
+            openMobileFileById(window.siyuan.ws.app, docId, ['cb-get-all']);
+        } else {
+            openTab({
+                app: window.siyuan.ws.app,
+                doc: {
+                    id: docId,
+                    zoomIn: false
+                }
+            });
+        }
+    }
+
     private render() {
         const content = this.element.querySelector('.card-content');
         if (!content) return;
@@ -136,14 +184,13 @@ export class RecentDocs {
 
         // 只显示前5条记录
         this.recentDocs.slice(0, 5).forEach(doc => {
-            const docItem = document.createElement('a');
+            const docItem = document.createElement('div');
             docItem.className = 'doc-item';
-            docItem.href = `siyuan://blocks/${doc.rootID}`;
+            docItem.addEventListener('click', () => this.openDoc(doc.rootID));
             
-            const icon = doc.icon || '#iconBookmark';
             docItem.innerHTML = `
                 <div class="doc-icon">
-                    <svg><use xlink:href="${icon}"></use></svg>
+                    <svg><use xlink:href="#iconFile"></use></svg>
                 </div>
                 <div class="doc-title">${doc.title || '未命名文档'}</div>
             `;
