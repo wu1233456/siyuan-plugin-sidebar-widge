@@ -23,6 +23,7 @@ import { Heatmap } from "./components/heatmap/heatmap";
 import { MusicPlayer } from "./components/music-player/music-player";
 import { QuickNote } from "./components/quick-note/quick-note";
 import { QuickDoc } from "./components/quick-doc/quick-doc";
+import { Birthday } from "./components/birthday/birthday";
 import { getFile, putFile } from "./api";
 
 const STORAGE_NAME = "menu-config";
@@ -53,6 +54,7 @@ export default class PluginSample extends Plugin {
     private heatmap: Heatmap;
     private musicPlayer: MusicPlayer;
     private quickDoc: QuickDoc;
+    private birthday: Birthday;
     private layoutConfigPath: string = "/data/storage/siyuan-plugin-sidebar-widget/sidebar-layout.json";
 
     async onload() {
@@ -499,6 +501,9 @@ export default class PluginSample extends Plugin {
                         case 'quickdoc':
                             this.quickDoc = new QuickDoc(card, cardId);
                             break;
+                        case 'birthday':
+                            this.birthday = new Birthday(card, cardId);
+                            break;
                     }
 
                     // 为新卡片添加拖拽事件
@@ -617,6 +622,10 @@ export default class PluginSample extends Plugin {
                             <div class="card-option" data-type="quickdoc">
                                 <svg><use xlink:href="#iconFile"></use></svg>
                                 <span class="card-option-label">快速文档</span>
+                            </div>
+                            <div class="card-option" data-type="birthday">
+                                <svg><use xlink:href="#iconFace"></use></svg>
+                                <span class="card-option-label">生日提醒</span>
                             </div>
                         </div>`,
                         width: "520px",
@@ -782,6 +791,9 @@ export default class PluginSample extends Plugin {
                                                     break;
                                                 case 'quickdoc':
                                                     this.quickDoc = new QuickDoc(card, cardConfig.id);
+                                                    break;
+                                                case 'birthday':
+                                                    this.birthday = new Birthday(card, cardConfig.id);
                                                     break;
                                             }
                                             
