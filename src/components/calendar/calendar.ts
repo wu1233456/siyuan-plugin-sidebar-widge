@@ -22,8 +22,7 @@ export class Calendar  {
             if (response.notebooks) {
                 this.notebooks = response.notebooks;
                 if (this.notebooks.length > 0) {
-                    this.selectedNotebook = this.notebooks[0];
-                    this.loadExistingNotes();
+                    await this.selectNotebook(this.notebooks[0]);
                 }
             }
         } catch (error) {
@@ -31,23 +30,68 @@ export class Calendar  {
         }
     }
 
+    private async selectNotebook(notebook: any) {
+        try {
+            const { conf } = await api.getNotebookConf(notebook.id);
+            let { dailyNoteSavePath, dailyNoteTemplatePath } = conf;
+            
+            // 处理保存路径中的模板变量
+            dailyNoteSavePath = dailyNoteSavePath.replace(/\{\{(.*?)\}\}/g, match =>
+                match.replace(/\bnow\b(?=(?:(?:[^"]*"){2})*[^"]*$)/g, `(toDate "2006-01-02" "[[dateSlot]]")`)
+            );
+
+            // 处理模板路径
+            if (dailyNoteTemplatePath) {
+                const system = await api.request('/api/system/getConf', {});
+                dailyNoteTemplatePath = system.conf.system.dataDir + '/templates' + dailyNoteTemplatePath;
+            }
+
+            this.selectedNotebook = {
+                ...notebook,
+                dailyNoteSavePath,
+                dailyNoteTemplatePath
+            };
+            
+            await this.loadExistingNotes();
+        } catch (error) {
+            console.error('Failed to get notebook config:', error);
+        }
+    }
+
+    private async getSavePath(date: Date) {
+        if (!this.selectedNotebook?.dailyNoteSavePath) return '';
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        const path = this.selectedNotebook.dailyNoteSavePath.replaceAll('[[dateSlot]]', dateStr);
+        return api.renderSprig(path);
+    }
+
     private async loadExistingNotes() {
         if (!this.selectedNotebook) return;
         
         const currentMonth = this.currentDate.getMonth() + 1;
         const currentYear = this.currentDate.getFullYear();
+        const yearMonth = `${currentYear}${String(currentMonth).padStart(2, '0')}`;
         
         try {
-            const sql = `SELECT * FROM blocks WHERE type='d' AND box='${this.selectedNotebook.id}' AND created LIKE '${currentYear}${String(currentMonth).padStart(2, '0')}%'`;
+            const sql = `
+                SELECT b.* FROM blocks b 
+                JOIN attributes a ON b.id = a.block_id 
+                WHERE b.type = 'd' 
+                AND b.box = '${this.selectedNotebook.id}'
+                AND a.name LIKE 'custom-dailynote-${yearMonth}__'
+            `;
             const notes = await api.sql(sql);
-            
             this.existingNotes.clear();
             notes.forEach((note: any) => {
-                const date = new Date(parseInt(note.created));
-                const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                this.existingNotes.add(dateStr);
+                const match = note.ial?.match(/custom-dailynote-(\d{8})/);
+                if (match) {
+                    const dateStr = match[1].replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+                    this.existingNotes.add(dateStr);
+                }
             });
-            
             this.renderCalendar();
         } catch (error) {
             console.error('Failed to load existing notes:', error);
@@ -57,17 +101,32 @@ export class Calendar  {
     private async createDailyNote(date: Date) {
         if (!this.selectedNotebook) return;
 
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const path = `/daily/${year}/${month}/${day}.sy`;
-
         try {
+            // 获取保存路径
+            const path = await this.getSavePath(date);
+            if (!path) return;
+
             const docID = await api.createDocWithMd(this.selectedNotebook.id, path, '');
 
+            // 如果有模板，则应用模板
+            if (this.selectedNotebook.dailyNoteTemplatePath) {
+                const res = await api.render(docID, this.selectedNotebook.dailyNoteTemplatePath);
+                await api.prependBlock('dom', res.content, docID);
+            }
+
+            // 设置自定义属性
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const dateStr = `${year}${month}${day}`;
+            const attrName = `custom-dailynote-${dateStr}`;
+            const attrs: { [key: string]: string } = {};
+            attrs[attrName] = dateStr;
+            await api.setBlockAttrs(docID, attrs);
+
             // 添加到已存在笔记集合中
-            const dateStr = `${year}-${month}-${day}`;
-            this.existingNotes.add(dateStr);
+            const formattedDateStr = `${year}-${month}-${day}`;
+            this.existingNotes.add(formattedDateStr);
             this.renderCalendar();
 
             return docID;
@@ -86,7 +145,6 @@ export class Calendar  {
                     <button class="next-month">›</button>
                     <button class="next-year">»</button>
                 </div>
-                <select class="notebook-select"></select>
                 <div class="calendar-weekdays">
                     <div>日</div>
                     <div>一</div>
@@ -99,6 +157,7 @@ export class Calendar  {
                 <div class="calendar-days"></div>
                 <div class="calendar-footer">
                     <button class="calendar-today">今天</button>
+                    <select class="notebook-select"></select>
                 </div>
             </div>
         `;
@@ -110,10 +169,12 @@ export class Calendar  {
 
         const notebookSelect = this.element.querySelector('.notebook-select');
         if (notebookSelect) {
-            notebookSelect.addEventListener('change', (e) => {
+            notebookSelect.addEventListener('change', async (e) => {
                 const select = e.target as HTMLSelectElement;
-                this.selectedNotebook = this.notebooks.find(n => n.id === select.value);
-                this.loadExistingNotes();
+                const notebook = this.notebooks.find(n => n.id === select.value);
+                if (notebook) {
+                    await this.selectNotebook(notebook);
+                }
             });
         }
 
@@ -127,11 +188,11 @@ export class Calendar  {
         const style = document.createElement('style');
         style.textContent = `
             .calendar-widget {
-                padding: 8px;
+                padding: 12px;
                 font-family: var(--b3-font-family);
                 color: var(--b3-theme-on-background);
                 background: var(--b3-theme-surface);
-                border-radius: 4px;
+                border-radius: 6px;
                 box-shadow: var(--b3-point-shadow);
             }
             
@@ -151,15 +212,19 @@ export class Calendar  {
                 color: var(--b3-theme-on-background);
                 font-size: 16px;
                 opacity: 0.7;
+                transition: all 0.2s ease;
             }
             
             .calendar-header button:hover {
                 opacity: 1;
+                color: var(--b3-theme-primary);
             }
 
             .calendar-header .current-month {
-                font-size: 14px;
+                font-size: 15px;
                 font-weight: 500;
+                min-width: 100px;
+                text-align: center;
             }
             
             .calendar-weekdays {
@@ -167,18 +232,20 @@ export class Calendar  {
                 grid-template-columns: repeat(7, 1fr);
                 text-align: center;
                 margin-bottom: 8px;
-                font-size: 12px;
+                font-size: 13px;
                 color: var(--b3-theme-on-surface);
+                font-weight: 500;
             }
             
             .calendar-days {
                 display: grid;
                 grid-template-columns: repeat(7, 1fr);
                 gap: 4px;
-                margin-bottom: 8px;
+                margin-bottom: 12px;
             }
             
             .calendar-day {
+                position: relative;
                 aspect-ratio: 1;
                 display: flex;
                 align-items: center;
@@ -187,21 +254,32 @@ export class Calendar  {
                 cursor: pointer;
                 border-radius: 4px;
                 transition: all 0.2s ease;
+                color: var(--b3-theme-on-background);
             }
             
             .calendar-day:hover {
-                background-color: rgba(var(--b3-theme-primary-rgb), .1);
-                color: var(--b3-theme-primary);
+                background-color: rgba(64, 128, 255, 0.1);
             }
             
             .calendar-day.today {
-                background-color: var(--b3-theme-primary);
-                color: white;
+                color: var(--b3-theme-on-background);
+            }
+
+            .calendar-day.today::after {
+                content: '';
+                position: absolute;
+                bottom: 2px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 4px;
+                height: 4px;
+                background-color: rgb(64, 128, 255);
+                border-radius: 50%;
             }
             
             .calendar-day.selected {
-                background-color: rgba(var(--b3-theme-primary-rgb), .1);
-                color: var(--b3-theme-primary);
+                background-color: rgb(64, 128, 255) !important;
+                color: white !important;
             }
             
             .calendar-day.other-month {
@@ -209,40 +287,51 @@ export class Calendar  {
                 opacity: 0.3;
             }
 
-            .calendar-today {
-                text-align: center;
-                color: var(--b3-theme-primary);
-                cursor: pointer;
-                padding: 4px;
-                font-size: 13px;
-                margin-top: 8px;
-                border-top: 1px solid var(--b3-border-color);
-            }
-
-            .calendar-today:hover {
-                background-color: rgba(var(--b3-theme-primary-rgb), .1);
-                border-radius: 4px;
-            }
-
-            .notebook-select {
-                width: 100%;
-                margin: 8px 0;
-                padding: 4px;
-                border: 1px solid var(--b3-border-color);
-                border-radius: 4px;
-                background: var(--b3-theme-background);
-                color: var(--b3-theme-on-background);
-            }
-
-            .calendar-day.has-note {
-                background-color: rgba(var(--b3-theme-primary-rgb), .1);
+            .calendar-day.has-note,
+            .calendar-day.today {
+                background-color: rgba(64, 128, 255, 0.1);
             }
 
             .calendar-footer {
                 display: flex;
-                justify-content: center;
-                padding: 8px 0;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 0 4px;
                 border-top: 1px solid var(--b3-border-color);
+                margin-top: 4px;
+            }
+
+            .calendar-today {
+                color: var(--b3-theme-primary);
+                cursor: pointer;
+                padding: 4px 12px;
+                font-size: 13px;
+                background: none;
+                border: 1px solid var(--b3-theme-primary);
+                border-radius: 4px;
+                transition: all 0.2s ease;
+            }
+
+            .calendar-today:hover {
+                background-color: var(--b3-theme-primary);
+                color: white;
+            }
+
+            .notebook-select {
+                padding: 4px 8px;
+                border: 1px solid var(--b3-border-color);
+                border-radius: 4px;
+                background: var(--b3-theme-background);
+                color: var(--b3-theme-on-background);
+                font-size: 13px;
+                min-width: 120px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .notebook-select:hover, .notebook-select:focus {
+                border-color: var(--b3-theme-primary);
+                outline: none;
             }
         `;
         this.element.appendChild(style);
@@ -346,27 +435,32 @@ export class Calendar  {
 
     private previousMonth() {
         this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+        this.loadExistingNotes();
         this.renderCalendar();
     }
 
     private nextMonth() {
         this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+        this.loadExistingNotes();
         this.renderCalendar();
     }
 
     private previousYear() {
         this.currentDate.setFullYear(this.currentDate.getFullYear() - 1);
+        this.loadExistingNotes();
         this.renderCalendar();
     }
 
     private nextYear() {
         this.currentDate.setFullYear(this.currentDate.getFullYear() + 1);
+        this.loadExistingNotes();
         this.renderCalendar();
     }
 
     private goToToday() {
         this.currentDate = new Date();
         this.selectedDate = new Date();
+        this.loadExistingNotes();
         this.renderCalendar();
     }
 } 
