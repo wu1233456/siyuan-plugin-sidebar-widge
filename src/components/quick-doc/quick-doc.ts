@@ -213,7 +213,7 @@ export class QuickDoc {
                         preview.textContent = tempDiv.textContent || "暂无内容";
                     }
                     // 格式化创建时间
-                    const createTime = new Date(parseInt(block.created) * 1000);
+                    const createTime = new Date(parseInt(block.created));
                     timeText.textContent = createTime.toLocaleDateString('zh-CN', {
                         year: 'numeric',
                         month: '2-digit',
