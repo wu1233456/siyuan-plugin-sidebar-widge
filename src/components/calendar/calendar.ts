@@ -1,4 +1,5 @@
 import * as api from '../../api';
+import { openTab, openMobileFileById, getFrontend } from 'siyuan';
 
 export class Calendar  {
     private element: HTMLElement;
@@ -7,11 +8,15 @@ export class Calendar  {
     private notebooks: any[] = [];
     private selectedNotebook: any = null;
     private existingNotes: Set<string> = new Set();
+    private existingNoteIds: Map<string, string> = new Map(); // 存储日期和文档ID的映射
+    private isMobile: boolean;
 
     constructor(element: HTMLElement) {
         this.element = element;
         this.currentDate = new Date();
         this.selectedDate = new Date();
+        const frontEnd = getFrontend();
+        this.isMobile = frontEnd === "mobile" || frontEnd === "browser-mobile";
         this.init();
         this.loadNotebooks();
     }
@@ -84,14 +89,18 @@ export class Calendar  {
                 AND a.name LIKE 'custom-dailynote-${yearMonth}__'
             `;
             const notes = await api.sql(sql);
+            
             this.existingNotes.clear();
+            this.existingNoteIds.clear();
             notes.forEach((note: any) => {
                 const match = note.ial?.match(/custom-dailynote-(\d{8})/);
                 if (match) {
                     const dateStr = match[1].replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
                     this.existingNotes.add(dateStr);
+                    this.existingNoteIds.set(dateStr, note.id);
                 }
             });
+            
             this.renderCalendar();
         } catch (error) {
             console.error('Failed to load existing notes:', error);
@@ -127,6 +136,7 @@ export class Calendar  {
             // 添加到已存在笔记集合中
             const formattedDateStr = `${year}-${month}-${day}`;
             this.existingNotes.add(formattedDateStr);
+            this.existingNoteIds.set(formattedDateStr, docID);
             this.renderCalendar();
 
             return docID;
@@ -426,8 +436,15 @@ export class Calendar  {
 
         const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
         
-        if (!this.existingNotes.has(dateStr)) {
-            await this.createDailyNote(date);
+        let docId;
+        if (this.existingNoteIds.has(dateStr)) {
+            docId = this.existingNoteIds.get(dateStr);
+        } else {
+            docId = await this.createDailyNote(date);
+        }
+
+        if (docId) {
+            this.openDoc(docId);
         }
         
         this.renderCalendar();
@@ -462,5 +479,19 @@ export class Calendar  {
         this.selectedDate = new Date();
         this.loadExistingNotes();
         this.renderCalendar();
+    }
+
+    private async openDoc(docId: string) {
+        if (this.isMobile) {
+            openMobileFileById(window.siyuan.ws.app, docId, ['cb-get-all']);
+        } else {
+            openTab({
+                app: window.siyuan.ws.app,
+                doc: {
+                    id: docId,
+                    zoomIn: false
+                }
+            });
+        }
     }
 } 
