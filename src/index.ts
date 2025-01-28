@@ -21,6 +21,7 @@ import { Memo } from "./components/memo/memo";
 import { PhotoAlbum } from "./components/photo-album/photo-album";
 import { Heatmap } from "./components/heatmap/heatmap";
 import { MusicPlayer } from "./components/music-player/music-player";
+import { QuickNote } from "./components/quick-note/quick-note";
 import { getFile, putFile } from "./api";
 
 const STORAGE_NAME = "menu-config";
@@ -487,6 +488,9 @@ export default class PluginSample extends Plugin {
                         case 'music':
                             this.musicPlayer = new MusicPlayer(card);
                             break;
+                        case 'quicknote':
+                            new QuickNote(card);
+                            break;
                     }
 
                     // 为新卡片添加拖拽事件
@@ -597,6 +601,10 @@ export default class PluginSample extends Plugin {
                             <div class="card-option" data-type="music">
                                 <svg><use xlink:href="#iconMusic"></use></svg>
                                 <span class="card-option-label">音乐播放器</span>
+                            </div>
+                            <div class="card-option" data-type="quicknote">
+                                <svg><use xlink:href="#iconEdit"></use></svg>
+                                <span class="card-option-label">快速笔记</span>
                             </div>
                         </div>`,
                         width: "520px",
@@ -756,6 +764,9 @@ export default class PluginSample extends Plugin {
                                                     break;
                                                 case 'music':
                                                     this.musicPlayer = new MusicPlayer(card);
+                                                    break;
+                                                case 'quicknote':
+                                                    new QuickNote(card);
                                                     break;
                                             }
                                             
