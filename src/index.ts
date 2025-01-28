@@ -465,7 +465,7 @@ export default class PluginSample extends Plugin {
                             this.recentDocs = new RecentDocs(card);
                             break;
                         case 'memo':
-                            this.memo = new Memo(card);
+                            this.memo = new Memo(card,cardId);
                             break;
                         case 'photo':
                             this.photoAlbum = new PhotoAlbum(card);
@@ -724,7 +724,7 @@ export default class PluginSample extends Plugin {
                                                     this.recentDocs = new RecentDocs(card);
                                                     break;
                                                 case 'memo':
-                                                    this.memo = new Memo(card);
+                                                    this.memo = new Memo(card,cardConfig.id);
                                                     break;
                                                 case 'photo':
                                                     this.photoAlbum = new PhotoAlbum(card);
