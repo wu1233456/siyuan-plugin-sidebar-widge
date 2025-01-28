@@ -22,7 +22,7 @@ export class Memo {
 
     constructor(container: HTMLElement, id?: string) {
         this.container = container;
-        this.id = id || `memo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        this.id = id;
         
         this.loadConfig().then(() => {
             this.init();

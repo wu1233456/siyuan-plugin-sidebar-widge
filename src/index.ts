@@ -417,6 +417,17 @@ export default class PluginSample extends Plugin {
                                     } catch (e) {
                                         console.error("删除贴纸配置失败", e);
                                     }
+                                } else if (card.dataset.cardType === 'habit' && card.dataset.cardId) {
+                                    try {
+                                        const configPath = "/data/storage/siyuan-plugin-sidebar-widget/habit-trackers-config.json";
+                                        const configs = await getFile(configPath);
+                                        if (configs && configs[card.dataset.cardId]) {
+                                            delete configs[card.dataset.cardId];
+                                            await putFile(configPath, false, new Blob([JSON.stringify(configs)], { type: "application/json" }));
+                                        }
+                                    } catch (e) {
+                                        console.error("删除习惯追踪器配置失败", e);
+                                    }
                                 }
                                 card.remove();
                                 // 如果行为空，删除行
@@ -441,7 +452,7 @@ export default class PluginSample extends Plugin {
                             this.memorialDay = new MemorialDay(card, cardId);
                             break;
                         case 'habit':
-                            this.habitTracker = new HabitTracker(card);
+                            this.habitTracker = new HabitTracker(card, cardId);
                             break;
                         case 'sticky':
                             this.stickyNote = new StickyNote(card, cardId);
@@ -676,6 +687,17 @@ export default class PluginSample extends Plugin {
                                                             } catch (e) {
                                                                 console.error("删除贴纸配置失败", e);
                                                             }
+                                                        } else if (card.dataset.cardType === 'habit' && card.dataset.cardId) {
+                                                            try {
+                                                                const configPath = "/data/storage/siyuan-plugin-sidebar-widget/habit-trackers-config.json";
+                                                                const configs = await getFile(configPath);
+                                                                if (configs && configs[card.dataset.cardId]) {
+                                                                    delete configs[card.dataset.cardId];
+                                                                    await putFile(configPath, false, new Blob([JSON.stringify(configs)], { type: "application/json" }));
+                                                                }
+                                                            } catch (e) {
+                                                                console.error("删除习惯追踪器配置失败", e);
+                                                            }
                                                         }
                                                         card.remove();
                                                         // 如果行为空，删除行
@@ -700,7 +722,7 @@ export default class PluginSample extends Plugin {
                                                     this.memorialDay = new MemorialDay(card, cardConfig.id);
                                                     break;
                                                 case 'habit':
-                                                    this.habitTracker = new HabitTracker(card);
+                                                    this.habitTracker = new HabitTracker(card, cardConfig.id);
                                                     break;
                                                 case 'sticky':
                                                     this.stickyNote = new StickyNote(card, cardConfig.id);

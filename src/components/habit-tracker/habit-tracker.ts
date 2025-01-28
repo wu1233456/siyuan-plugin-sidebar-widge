@@ -2,6 +2,7 @@ import { Dialog } from "siyuan";
 import { getFile, putFile } from "../../api";
 
 interface HabitTrackerConfig {
+    id: string;
     currentValue: number;
     targetValue: number;
     title: string;
@@ -18,11 +19,15 @@ export class HabitTracker {
     private progressText: HTMLElement;
     private buttonsContainer: HTMLElement;
     private titleElement: HTMLElement;
-    private configPath: string;
+    private configPath: string = "/data/storage/siyuan-plugin-sidebar-widget/habit-trackers-config.json";
+    private id: string;
+    private static configs: { [key: string]: HabitTrackerConfig } = {};
+    private static configsLoaded: boolean = false;
 
-    constructor(container: HTMLElement) {
+    constructor(container: HTMLElement, id?: string) {
         this.container = container;
-        this.configPath = "/data/storage/siyuan-plugin-sidebar-widget/habit-tracker.json";
+        this.id = id;
+        
         this.loadConfig().then(() => {
             this.init();
             // 添加点击事件监听
@@ -36,30 +41,45 @@ export class HabitTracker {
         });
     }
 
-    private async loadConfig() {
+    private async loadAllConfigs() {
+        if (HabitTracker.configsLoaded) return;
+        
         try {
-            const config = await getFile(this.configPath);
-            if (config) {
-                this.currentValue = config.currentValue?config.currentValue:0;
-                this.targetValue = config.targetValue?config.targetValue:8;
-                this.title = config.title?config.title:"习惯打卡";
-                this.autoReset = config.autoReset?config.autoReset:true;
+            const configs = await getFile(this.configPath);
+            if (configs) {
+                HabitTracker.configs = configs;
             }
-            console.log("加载习惯追踪器配置成功");
+            console.log("加载所有习惯追踪器配置成功", HabitTracker.configs);
+            HabitTracker.configsLoaded = true;
         } catch (e) {
             console.log("加载习惯追踪器配置失败，使用默认配置");
+            HabitTracker.configs = {};
+            HabitTracker.configsLoaded = true;
+        }
+    }
+
+    private async loadConfig() {
+        await this.loadAllConfigs();
+        const config = HabitTracker.configs[this.id];
+        if (config) {
+            this.currentValue = config.currentValue;
+            this.targetValue = config.targetValue;
+            this.title = config.title;
+            this.autoReset = config.autoReset;
         }
     }
 
     private async saveConfig() {
-        const config: HabitTrackerConfig = {
+        HabitTracker.configs[this.id] = {
+            id: this.id,
             currentValue: this.currentValue,
             targetValue: this.targetValue,
             title: this.title,
             autoReset: this.autoReset
         };
+        
         try {
-            await putFile(this.configPath, false, new Blob([JSON.stringify(config)], { type: "application/json" }));
+            await putFile(this.configPath, false, new Blob([JSON.stringify(HabitTracker.configs)], { type: "application/json" }));
             console.log("保存习惯追踪器配置成功");
         } catch (e) {
             console.error("保存习惯追踪器配置失败", e);
