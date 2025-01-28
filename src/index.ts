@@ -27,6 +27,11 @@ const STORAGE_NAME = "menu-config";
 const TAB_TYPE = "custom_tab";
 const DOCK_TYPE = "dock_tab";
 
+interface CardConfig {
+    type: string;
+    id: string;
+}
+
 export default class PluginSample extends Plugin {
 
     customTab: () => IModel;
@@ -372,12 +377,16 @@ export default class PluginSample extends Plugin {
                 const addDragEvents = setupDragEvents();
 
                 // 修改createCard函数，使用返回的addDragEvents函数
-                const createCard = async (type: string) => {
+                const createCard = async (type: string, id?: string) => {
                     const row = createRow();
                     dock.element.appendChild(row);
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.setAttribute('draggable', 'true');
+                    
+                    // 为每个卡片生成唯一id
+                    const cardId = id || `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                    card.dataset.cardId = cardId;
                     card.dataset.cardType = type;
                     card.style.cssText = cardStyle;
                     row.appendChild(card);
@@ -396,6 +405,19 @@ export default class PluginSample extends Plugin {
                             label: "删除",
                             click: async () => {
                                 const parentRow = card.parentElement;
+                                // 如果是贴纸，从配置文件中删除其配置
+                                if (card.dataset.cardType === 'sticky' && card.dataset.cardId) {
+                                    try {
+                                        const configPath = "/data/storage/siyuan-plugin-sidebar-widget/sticky-notes-config.json";
+                                        const configs = await getFile(configPath);
+                                        if (configs && configs[card.dataset.cardId]) {
+                                            delete configs[card.dataset.cardId];
+                                            await putFile(configPath, false, new Blob([JSON.stringify(configs)], { type: "application/json" }));
+                                        }
+                                    } catch (e) {
+                                        console.error("删除贴纸配置失败", e);
+                                    }
+                                }
                                 card.remove();
                                 // 如果行为空，删除行
                                 if (parentRow && !parentRow.hasChildNodes()) {
@@ -422,7 +444,7 @@ export default class PluginSample extends Plugin {
                             this.habitTracker = new HabitTracker(card);
                             break;
                         case 'sticky':
-                            this.stickyNote = new StickyNote(card);
+                            this.stickyNote = new StickyNote(card, cardId);
                             break;
                         case 'calendar':
                             this.calendar = new Calendar(card);
@@ -587,7 +609,13 @@ export default class PluginSample extends Plugin {
                     const rows = dock.element.getElementsByClassName('card-row');
                     const layout = Array.from(rows).map(row => {
                         const cards = row.getElementsByClassName('card');
-                        return Array.from(cards).map(card => (card as HTMLElement).dataset.cardType);
+                        return Array.from(cards).map(card => {
+                            const config: CardConfig = {
+                                type: (card as HTMLElement).dataset.cardType,
+                                id: (card as HTMLElement).dataset.cardId
+                            };
+                            return config;
+                        });
                     });
                     try {
                         await putFile(this.layoutConfigPath, false, new Blob([JSON.stringify(layout)], { type: "application/json" }));
@@ -612,12 +640,13 @@ export default class PluginSample extends Plugin {
                                 if (Array.isArray(rowConfig)) {
                                     const row = createRow();
                                     dock.element.appendChild(row);
-                                    for (const type of rowConfig) {
-                                        if (typeof type === 'string') {
+                                    for (const cardConfig of rowConfig) {
+                                        if (typeof cardConfig === 'object' && cardConfig.type) {
                                             const card = document.createElement('div');
                                             card.className = 'card';
                                             card.setAttribute('draggable', 'true');
-                                            card.dataset.cardType = type;
+                                            card.dataset.cardType = cardConfig.type;
+                                            card.dataset.cardId = cardConfig.id;
                                             card.style.cssText = cardStyle;
                                             row.appendChild(card);
                                             
@@ -635,6 +664,19 @@ export default class PluginSample extends Plugin {
                                                     label: "删除",
                                                     click: async () => {
                                                         const parentRow = card.parentElement;
+                                                        // 如果是贴纸，从配置文件中删除其配置
+                                                        if (card.dataset.cardType === 'sticky' && card.dataset.cardId) {
+                                                            try {
+                                                                const configPath = "/data/storage/siyuan-plugin-sidebar-widget/sticky-notes-config.json";
+                                                                const configs = await getFile(configPath);
+                                                                if (configs && configs[card.dataset.cardId]) {
+                                                                    delete configs[card.dataset.cardId];
+                                                                    await putFile(configPath, false, new Blob([JSON.stringify(configs)], { type: "application/json" }));
+                                                                }
+                                                            } catch (e) {
+                                                                console.error("删除贴纸配置失败", e);
+                                                            }
+                                                        }
                                                         card.remove();
                                                         // 如果行为空，删除行
                                                         if (parentRow && !parentRow.hasChildNodes()) {
@@ -650,7 +692,7 @@ export default class PluginSample extends Plugin {
                                                 });
                                             });
                                             
-                                            switch(type) {
+                                            switch(cardConfig.type) {
                                                 case 'tomato':
                                                     this.tomatoClock = new TomatoClock(card);
                                                     break;
@@ -661,7 +703,7 @@ export default class PluginSample extends Plugin {
                                                     this.habitTracker = new HabitTracker(card);
                                                     break;
                                                 case 'sticky':
-                                                    this.stickyNote = new StickyNote(card);
+                                                    this.stickyNote = new StickyNote(card, cardConfig.id);
                                                     break;
                                                 case 'calendar':
                                                     this.calendar = new Calendar(card);

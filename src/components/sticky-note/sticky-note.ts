@@ -1,6 +1,7 @@
 import { getFile, putFile } from "../../api";
 
 interface StickyNoteConfig {
+    id: string;
     content: string;
     backgroundColor: string;
     textColor: string;
@@ -11,11 +12,15 @@ export class StickyNote {
     private content: string;
     private backgroundColor: string;
     private textColor: string;
-    private configPath: string;
+    private configPath: string = "/data/storage/siyuan-plugin-sidebar-widget/sticky-notes-config.json";
+    private id: string;
+    private static configs: { [key: string]: StickyNoteConfig } = {};
+    private static configsLoaded: boolean = false;
 
-    constructor(container: HTMLElement) {
+    constructor(container: HTMLElement, id?: string) {
+        console.log("sticky-note constructor", id);
         this.container = container;
-        this.configPath = "/data/storage/siyuan-plugin-sidebar-widget/sticky-note.json";
+        this.id = id || this.generateId();
         this.content = '点击编辑内容';
         this.backgroundColor = '#FFE4B5';
         this.textColor = '#f3b670';
@@ -26,28 +31,48 @@ export class StickyNote {
         });
     }
 
-    private async loadConfig() {
+    private generateId(): string {
+        return crypto.randomUUID();
+    }
+
+    private async loadAllConfigs() {
+        if (StickyNote.configsLoaded) return;
+        
         try {
-            const config = await getFile(this.configPath);
-            if (config) {
-                this.content = config.content?config.content:'贴纸';
-                this.backgroundColor = config.backgroundColor;
-                this.textColor = config.textColor;
+            const configs = await getFile(this.configPath);
+            if (configs) {
+                StickyNote.configs = configs;
             }
-            console.log("加载便利贴配置成功");
+            console.log("加载所有便利贴配置成功", StickyNote.configs);
+            StickyNote.configsLoaded = true;
+            console.log("加载所有便利贴配置成功");
         } catch (e) {
             console.log("加载便利贴配置失败，使用默认配置");
+            StickyNote.configs = {};
+            StickyNote.configsLoaded = true;
+        }
+    }
+
+    private async loadConfig() {
+        await this.loadAllConfigs();
+        const config = StickyNote.configs[this.id];
+        if (config) {
+            this.content = config.content || '贴纸';
+            this.backgroundColor = config.backgroundColor;
+            this.textColor = config.textColor;
         }
     }
 
     private async saveConfig() {
-        const config: StickyNoteConfig = {
+        StickyNote.configs[this.id] = {
+            id: this.id,
             content: this.content,
             backgroundColor: this.backgroundColor,
             textColor: this.textColor
         };
+        
         try {
-            await putFile(this.configPath, false, new Blob([JSON.stringify(config)], { type: "application/json" }));
+            await putFile(this.configPath, false, new Blob([JSON.stringify(StickyNote.configs)], { type: "application/json" }));
             console.log("保存便利贴配置成功");
         } catch (e) {
             console.error("保存便利贴配置失败", e);
