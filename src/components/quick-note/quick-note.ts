@@ -241,7 +241,7 @@ export class QuickNote {
             // 使用当前时间作为文件名
             const now = new Date();
             const timestamp = now.getTime();
-            const path = `/快速笔记/${timestamp}.md`;
+            const path = `/`;
             
             // 创建空文档
             const docId = await createDocWithMd(this.selectedNotebook.id, path, '');
