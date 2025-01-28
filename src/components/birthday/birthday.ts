@@ -124,10 +124,10 @@ export class Birthday {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
             max-height: 200px;
             overflow-y: auto;
-            padding: 8px;
+            padding: 6px;
             background: var(--b3-theme-surface);
         `;
 
@@ -194,10 +194,10 @@ export class Birthday {
             flex: 1;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
             max-height: 200px;
             overflow-y: auto;
-            padding: 8px;
+            padding: 6px;
             background: var(--b3-theme-surface);
         `;
 
@@ -241,110 +241,112 @@ export class Birthday {
             nameElement.textContent = '-';
             daysElement.textContent = '0';
             dateElement.textContent = '-';
-            return;
+        } else {
+            // 按照到下一个生日的天数排序
+            const sortedBirthdays = [...birthdays].sort((a, b) => {
+                const daysA = this.calculateDaysUntilBirthday(a.date);
+                const daysB = this.calculateDaysUntilBirthday(b.date);
+                return daysA - daysB;
+            });
+
+            // 显示最近的生日
+            const nextBirthday = sortedBirthdays[0];
+            const daysUntil = this.calculateDaysUntilBirthday(nextBirthday.date);
+            
+            nameElement.textContent = nextBirthday.name;
+            daysElement.textContent = String(daysUntil);
+            dateElement.textContent = this.formatDate(nextBirthday.date);
+
+            // 显示所有生日列表
+            sortedBirthdays.forEach(birthday => {
+                const birthdayItem = document.createElement('div');
+                birthdayItem.style.cssText = `
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    background: var(--b3-theme-background);
+                    font-size: 12px;
+                    min-height: 24px;
+                `;
+
+                const leftContent = document.createElement('div');
+                leftContent.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0px;
+                `;
+
+                const name = document.createElement('div');
+                name.style.cssText = `
+                    color: var(--b3-theme-on-background);
+                    opacity: 0.9;
+                    line-height: 1.2;
+                `;
+                name.textContent = birthday.name;
+
+                const date = document.createElement('div');
+                date.style.cssText = `
+                    color: var(--b3-theme-on-surface-light);
+                    opacity: 0.7;
+                    font-size: 10px;
+                    line-height: 1.2;
+                `;
+                date.textContent = this.formatDate(birthday.date);
+
+                const days = document.createElement('div');
+                days.style.cssText = `
+                    color: var(--b3-theme-on-background);
+                    font-weight: 500;
+                    opacity: 0.9;
+                    font-size: 11px;
+                `;
+                days.textContent = `${this.calculateDaysUntilBirthday(birthday.date)}天`;
+
+                leftContent.appendChild(name);
+                leftContent.appendChild(date);
+                birthdayItem.appendChild(leftContent);
+                birthdayItem.appendChild(days);
+
+                // 添加删除按钮
+                const deleteButton = document.createElement('button');
+                deleteButton.innerHTML = '×';
+                deleteButton.style.cssText = `
+                    border: none;
+                    background: none;
+                    color: var(--b3-theme-on-surface-light);
+                    cursor: pointer;
+                    padding: 0 4px;
+                    margin-left: 8px;
+                    font-size: 14px;
+                    opacity: 0;
+                    transition: opacity 0.2s;
+                `;
+                birthdayItem.appendChild(deleteButton);
+
+                // 显示/隐藏删除按钮
+                birthdayItem.addEventListener('mouseenter', () => {
+                    deleteButton.style.opacity = '1';
+                });
+                birthdayItem.addEventListener('mouseleave', () => {
+                    deleteButton.style.opacity = '0';
+                });
+
+                // 删除功能
+                deleteButton.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const index = Birthday.configs[this.id].findIndex(b => b.id === birthday.id);
+                    if (index > -1) {
+                        Birthday.configs[this.id].splice(index, 1);
+                        await this.saveConfig();
+                        this.updateBirthdayDisplay(leftSection, rightSection);
+                    }
+                });
+
+                rightSection.appendChild(birthdayItem);
+            });
         }
-
-        // 按照到下一个生日的天数排序
-        const sortedBirthdays = [...birthdays].sort((a, b) => {
-            const daysA = this.calculateDaysUntilBirthday(a.date);
-            const daysB = this.calculateDaysUntilBirthday(b.date);
-            return daysA - daysB;
-        });
-
-        // 显示最近的生日
-        const nextBirthday = sortedBirthdays[0];
-        const daysUntil = this.calculateDaysUntilBirthday(nextBirthday.date);
-        
-        nameElement.textContent = nextBirthday.name;
-        daysElement.textContent = String(daysUntil);
-        dateElement.textContent = this.formatDate(nextBirthday.date);
-
-        // 显示所有生日列表
-        sortedBirthdays.forEach(birthday => {
-            const birthdayItem = document.createElement('div');
-            birthdayItem.style.cssText = `
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                padding: 6px 10px;
-                border-radius: 6px;
-                background: var(--b3-theme-background);
-                font-size: 12px;
-            `;
-
-            const leftContent = document.createElement('div');
-            leftContent.style.cssText = `
-                display: flex;
-                flex-direction: column;
-                gap: 2px;
-            `;
-
-            const name = document.createElement('div');
-            name.style.cssText = `
-                color: var(--b3-theme-on-background);
-                opacity: 0.9;
-            `;
-            name.textContent = birthday.name;
-
-            const date = document.createElement('div');
-            date.style.cssText = `
-                color: var(--b3-theme-on-surface-light);
-                opacity: 0.7;
-                font-size: 11px;
-            `;
-            date.textContent = this.formatDate(birthday.date);
-
-            const days = document.createElement('div');
-            days.style.cssText = `
-                color: var(--b3-theme-on-background);
-                font-weight: 500;
-                opacity: 0.9;
-                padding-top: 2px;
-            `;
-            days.textContent = `${this.calculateDaysUntilBirthday(birthday.date)}天`;
-
-            leftContent.appendChild(name);
-            leftContent.appendChild(date);
-            birthdayItem.appendChild(leftContent);
-            birthdayItem.appendChild(days);
-
-            // 添加删除按钮
-            const deleteButton = document.createElement('button');
-            deleteButton.innerHTML = '×';
-            deleteButton.style.cssText = `
-                border: none;
-                background: none;
-                color: var(--b3-theme-on-surface-light);
-                cursor: pointer;
-                padding: 0 4px;
-                margin-left: 8px;
-                font-size: 14px;
-                opacity: 0;
-                transition: opacity 0.2s;
-            `;
-            birthdayItem.appendChild(deleteButton);
-
-            // 显示/隐藏删除按钮
-            birthdayItem.addEventListener('mouseenter', () => {
-                deleteButton.style.opacity = '1';
-            });
-            birthdayItem.addEventListener('mouseleave', () => {
-                deleteButton.style.opacity = '0';
-            });
-
-            // 删除功能
-            deleteButton.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const index = Birthday.configs[this.id].findIndex(b => b.id === birthday.id);
-                if (index > -1) {
-                    Birthday.configs[this.id].splice(index, 1);
-                    await this.saveConfig();
-                    this.updateBirthdayDisplay(leftSection, rightSection);
-                }
-            });
-
-            rightSection.appendChild(birthdayItem);
-        });
     }
 
     private showAddDialog() {
