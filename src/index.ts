@@ -438,7 +438,7 @@ export default class PluginSample extends Plugin {
                             this.tomatoClock = new TomatoClock(card);
                             break;
                         case 'memorial':
-                            this.memorialDay = new MemorialDay(card);
+                            this.memorialDay = new MemorialDay(card, cardId);
                             break;
                         case 'habit':
                             this.habitTracker = new HabitTracker(card);
@@ -697,7 +697,7 @@ export default class PluginSample extends Plugin {
                                                     this.tomatoClock = new TomatoClock(card);
                                                     break;
                                                 case 'memorial':
-                                                    this.memorialDay = new MemorialDay(card);
+                                                    this.memorialDay = new MemorialDay(card, cardConfig.id);
                                                     break;
                                                 case 'habit':
                                                     this.habitTracker = new HabitTracker(card);

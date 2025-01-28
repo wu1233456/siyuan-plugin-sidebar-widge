@@ -20,7 +20,7 @@ export class StickyNote {
     constructor(container: HTMLElement, id?: string) {
         console.log("sticky-note constructor", id);
         this.container = container;
-        this.id = id || this.generateId();
+        this.id = id;
         this.content = '点击编辑内容';
         this.backgroundColor = '#FFE4B5';
         this.textColor = '#f3b670';
@@ -29,10 +29,6 @@ export class StickyNote {
             this.render();
             this.bindEvents();
         });
-    }
-
-    private generateId(): string {
-        return crypto.randomUUID();
     }
 
     private async loadAllConfigs() {

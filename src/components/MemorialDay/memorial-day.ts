@@ -2,6 +2,7 @@ import { Dialog } from "siyuan";
 import { getFile, putFile } from "../../api";
 
 interface MemorialDayConfig {
+    id: string;
     title: string;
     date: string;
     repeatType: RepeatType;
@@ -22,14 +23,18 @@ export class MemorialDay {
     private repeatType: RepeatType;
     private titleElement: HTMLElement;
     private dateElement: HTMLElement;
-    private configPath: string;
+    private configPath: string = "/data/storage/siyuan-plugin-sidebar-widget/memorial-days-config.json";
+    private id: string;
+    private static configs: { [key: string]: MemorialDayConfig } = {};
+    private static configsLoaded: boolean = false;
 
-    constructor(container: HTMLElement, title: string = "你在世界已经", date: Date = new Date(), repeatType: RepeatType = RepeatType.NONE) {
+    constructor(container: HTMLElement, id?: string) {
         this.container = container;
-        this.title = title;
-        this.date = date;
-        this.repeatType = repeatType;
-        this.configPath = "/data/storage/siyuan-plugin-sidebar-widget/memorial-day.json";
+        this.id = id;
+        this.title = "你在世界已经";
+        this.date = new Date();
+        this.repeatType = RepeatType.NONE;
+        
         this.loadConfig().then(() => {
             this.init();
             this.updateDays();
@@ -37,37 +42,50 @@ export class MemorialDay {
         });
     }
 
-    private async loadConfig() {
+    private async loadAllConfigs() {
+        if (MemorialDay.configsLoaded) return;
+        
         try {
-            const config = await getFile(this.configPath);
-            console.log("config", config);
-            if (config) {
-                this.title = config.title || this.title;
-                try {
-                    const dateValue = new Date(config.date);
-                    if (!isNaN(dateValue.getTime())) {
-                        this.date = dateValue;
-                    }
-                } catch (e) {
-                    console.error("日期格式无效，使用默认日期");
-                }
-                this.repeatType = config.repeatType || this.repeatType;
+            const configs = await getFile(this.configPath);
+            if (configs) {
+                MemorialDay.configs = configs;
             }
-            console.log("加载纪念日配置成功");
-            console.log(this.title, this.date, this.repeatType);
+            console.log("加载所有纪念日配置成功", MemorialDay.configs);
+            MemorialDay.configsLoaded = true;
         } catch (e) {
             console.log("加载纪念日配置失败，使用默认配置");
+            MemorialDay.configs = {};
+            MemorialDay.configsLoaded = true;
+        }
+    }
+
+    private async loadConfig() {
+        await this.loadAllConfigs();
+        const config = MemorialDay.configs[this.id];
+        if (config) {
+            this.title = config.title;
+            try {
+                const dateValue = new Date(config.date);
+                if (!isNaN(dateValue.getTime())) {
+                    this.date = dateValue;
+                }
+            } catch (e) {
+                console.error("日期格式无效，使用默认日期");
+            }
+            this.repeatType = config.repeatType;
         }
     }
 
     private async saveConfig() {
-        const config: MemorialDayConfig = {
+        MemorialDay.configs[this.id] = {
+            id: this.id,
             title: this.title,
             date: this.formatDate(this.date),
             repeatType: this.repeatType
         };
+        
         try {
-            await putFile(this.configPath, false, new Blob([JSON.stringify(config)], { type: "application/json" }));
+            await putFile(this.configPath, false, new Blob([JSON.stringify(MemorialDay.configs)], { type: "application/json" }));
             console.log("保存纪念日配置成功");
         } catch (e) {
             console.error("保存纪念日配置失败", e);
@@ -262,7 +280,7 @@ export class MemorialDay {
                         ">
                     </div>
                     <div style="display: flex; gap: 12px; margin-bottom: 16px;">
-                        <div class="b3-dialog__item" style="flex: 2;">
+                        <div class="b3-dialog__item" style="flex: 1;">
                             <label style="display: block; margin-bottom: 8px; color: var(--b3-theme-on-surface);">日期</label>
                             <input class="b3-text-field" type="date" value="${this.formatDate(this.date)}" style="
                                 width: 100%;
@@ -275,13 +293,21 @@ export class MemorialDay {
                         </div>
                         <div class="b3-dialog__item" style="flex: 1;">
                             <label style="display: block; margin-bottom: 8px; color: var(--b3-theme-on-surface);">重复频率</label>
-                            <select class="b3-select" style="
+                            <select class="b3-text-field" style="
                                 width: 100%;
                                 padding: 8px 12px;
                                 border-radius: 6px;
                                 border: 1px solid var(--b3-theme-surface-lighter);
                                 background: var(--b3-theme-surface);
                                 transition: all 0.3s ease;
+                                appearance: none;
+                                -webkit-appearance: none;
+                                background-image: url('data:image/svg+xml;utf8,<svg fill="gray" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+                                background-repeat: no-repeat;
+                                background-position: right 8px center;
+                                padding-right: 32px;
+                                height: 32px;
+                                line-height: 32px;
                             ">
                                 ${Object.values(RepeatType).map(type => 
                                     `<option value="${type}" ${type === this.repeatType ? 'selected' : ''}>${type}</option>`
