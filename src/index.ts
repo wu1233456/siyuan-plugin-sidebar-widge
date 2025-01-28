@@ -22,6 +22,7 @@ import { PhotoAlbum } from "./components/photo-album/photo-album";
 import { Heatmap } from "./components/heatmap/heatmap";
 import { MusicPlayer } from "./components/music-player/music-player";
 import { QuickNote } from "./components/quick-note/quick-note";
+import { QuickDoc } from "./components/quick-doc/quick-doc";
 import { getFile, putFile } from "./api";
 
 const STORAGE_NAME = "menu-config";
@@ -51,6 +52,7 @@ export default class PluginSample extends Plugin {
     private photoAlbum: PhotoAlbum;
     private heatmap: Heatmap;
     private musicPlayer: MusicPlayer;
+    private quickDoc: QuickDoc;
     private layoutConfigPath: string = "/data/storage/siyuan-plugin-sidebar-widget/sidebar-layout.json";
 
     async onload() {
@@ -104,6 +106,9 @@ export default class PluginSample extends Plugin {
 </symbol>
 <symbol id="iconMusic" viewBox="0 0 24 24">
     <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+</symbol>
+<symbol id="iconFile" viewBox="0 0 24 24">
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM17.99 9l-1.41-1.42-6.59 6.59-2.58-2.57-1.42 1.41 4 3.99z"/>
 </symbol>`);
 
         // 修改卡片行样式
@@ -491,6 +496,9 @@ export default class PluginSample extends Plugin {
                         case 'quicknote':
                             new QuickNote(card);
                             break;
+                        case 'quickdoc':
+                            this.quickDoc = new QuickDoc(card, cardId);
+                            break;
                     }
 
                     // 为新卡片添加拖拽事件
@@ -605,6 +613,10 @@ export default class PluginSample extends Plugin {
                             <div class="card-option" data-type="quicknote">
                                 <svg><use xlink:href="#iconEdit"></use></svg>
                                 <span class="card-option-label">快速笔记</span>
+                            </div>
+                            <div class="card-option" data-type="quickdoc">
+                                <svg><use xlink:href="#iconFile"></use></svg>
+                                <span class="card-option-label">快速文档</span>
                             </div>
                         </div>`,
                         width: "520px",
@@ -767,6 +779,9 @@ export default class PluginSample extends Plugin {
                                                     break;
                                                 case 'quicknote':
                                                     new QuickNote(card);
+                                                    break;
+                                                case 'quickdoc':
+                                                    this.quickDoc = new QuickDoc(card, cardConfig.id);
                                                     break;
                                             }
                                             

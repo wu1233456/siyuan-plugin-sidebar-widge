@@ -141,6 +141,16 @@ export async function getIDsByHPath(notebook: NotebookId, path: string): Promise
     return request(url, data);
 }
 
+export async function getDoc(id: string, mode: number = 0, size: number = 102400): Promise<IData> {
+    let payload: IPayload = {
+        id: id,
+        mode: mode,
+        size: size,
+    };
+    let url = '/api/filetree/getDoc';
+    return request(url, payload);
+}
+
 // **************************************** Asset Files ****************************************
 
 export async function upload(assetsDirPath: string, files: any[]): Promise<IResUpload> {
