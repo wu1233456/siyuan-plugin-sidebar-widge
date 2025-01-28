@@ -137,14 +137,14 @@ export default class PluginSample extends Plugin {
 
         this.addDock({
             config: {
-                position: "LeftBottom",
+                position: "RightTop",
                 size: { width: 200, height: 0 },
                 icon: "iconTime",
-                title: "番茄钟",
+                title: "侧边栏小组件",
                 hotkey: "⌥⌘W",
             },
             data: {
-                text: "番茄钟"
+                text: "侧边栏小组件"
             },
             type: DOCK_TYPE,
             init: (dock) => {
