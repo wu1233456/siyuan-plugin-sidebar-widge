@@ -2,7 +2,7 @@
   "name": "siyuan-plugin-sidebar-widget",
   "author": "wuchunlin",
   "url": "https://github.com/wu1233456/siyuan-plugin-sidebar-widget",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "minAppVersion": "3.0.12",
   "backends": [
     "windows",
