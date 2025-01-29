@@ -75,6 +75,7 @@ export class Birthday {
     }
 
     private init() {
+        this.container.innerHTML = '';
         const card = document.createElement('div');
         card.style.cssText = `
             display: flex;
@@ -167,6 +168,7 @@ export class Birthday {
     }
 
     private updateBirthdayDisplay(leftSection: HTMLElement, rightSection: HTMLElement) {
+        console.log("更新生日显示");
         // 保存左侧标题和添加按钮的引用
         const leftTitle = leftSection.querySelector('div:first-child')?.cloneNode(true) as HTMLElement;
         const addButton = leftSection.querySelector('button')?.cloneNode(true) as HTMLElement;
@@ -398,14 +400,7 @@ export class Birthday {
             await this.saveConfig();
 
             // 更新显示
-            const content = this.container.querySelector('.card > div') as HTMLElement;
-            if (content) {
-                const leftSection = content.children[0] as HTMLElement;
-                const rightSection = content.children[1] as HTMLElement;
-                if (leftSection && rightSection) {
-                    this.updateBirthdayDisplay(leftSection, rightSection);
-                }
-            }
+            this.init();
 
             dialog.destroy();
         });
