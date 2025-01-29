@@ -130,7 +130,13 @@ export class Birthday {
             overflow-y: auto;
             padding: 6px;
             background: var(--b3-theme-surface);
+            cursor: pointer;
         `;
+        
+        // 添加点击事件，显示完整列表
+        rightSection.addEventListener('click', () => {
+            this.showBirthdayListDialog();
+        });
 
         // 创建添加按钮
         const addButton = document.createElement('button');
@@ -201,6 +207,7 @@ export class Birthday {
             overflow-y: auto;
             padding: 6px;
             background: var(--b3-theme-surface);
+            cursor: pointer;
         `;
 
         // 先添加回标题
@@ -259,8 +266,9 @@ export class Birthday {
             daysElement.textContent = String(daysUntil);
             dateElement.textContent = this.formatDate(nextBirthday.date);
 
-            // 显示所有生日列表
-            sortedBirthdays.forEach(birthday => {
+            // 只显示最近的5个生日
+            const displayBirthdays = sortedBirthdays.slice(0, 5);
+            displayBirthdays.forEach(birthday => {
                 const birthdayItem = document.createElement('div');
                 birthdayItem.style.cssText = `
                     display: flex;
@@ -311,43 +319,22 @@ export class Birthday {
                 birthdayItem.appendChild(leftContent);
                 birthdayItem.appendChild(days);
 
-                // 添加删除按钮
-                const deleteButton = document.createElement('button');
-                deleteButton.innerHTML = '×';
-                deleteButton.style.cssText = `
-                    border: none;
-                    background: none;
-                    color: var(--b3-theme-on-surface-light);
-                    cursor: pointer;
-                    padding: 0 4px;
-                    margin-left: 8px;
-                    font-size: 14px;
-                    opacity: 0;
-                    transition: opacity 0.2s;
-                `;
-                birthdayItem.appendChild(deleteButton);
-
-                // 显示/隐藏删除按钮
-                birthdayItem.addEventListener('mouseenter', () => {
-                    deleteButton.style.opacity = '1';
-                });
-                birthdayItem.addEventListener('mouseleave', () => {
-                    deleteButton.style.opacity = '0';
-                });
-
-                // 删除功能
-                deleteButton.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    const index = Birthday.configs[this.id].findIndex(b => b.id === birthday.id);
-                    if (index > -1) {
-                        Birthday.configs[this.id].splice(index, 1);
-                        await this.saveConfig();
-                        this.updateBirthdayDisplay(leftSection, rightSection);
-                    }
-                });
-
                 rightSection.appendChild(birthdayItem);
             });
+
+            // 如果有更多生日，显示查看更多提示
+            if (birthdays.length > 5) {
+                const moreItem = document.createElement('div');
+                moreItem.style.cssText = `
+                    text-align: center;
+                    padding: 4px;
+                    color: var(--b3-theme-primary);
+                    font-size: 12px;
+                    opacity: 0.8;
+                `;
+                moreItem.textContent = `查看全部 ${birthdays.length} 个生日`;
+                rightSection.appendChild(moreItem);
+            }
         }
     }
 
@@ -404,5 +391,266 @@ export class Birthday {
 
             dialog.destroy();
         });
+    }
+
+    private showBirthdayListDialog() {
+        const dialog = new Dialog({
+            title: "生日列表",
+            content: `
+                <div class="b3-dialog__content" style="
+                    padding: 0;
+                    display: flex;
+                    height: 70vh;
+                    min-height: 60vh;
+                    max-height: 60vh;
+                    overflow: hidden;
+                ">
+                    <!-- 左侧导航 -->
+                    <div style="
+                        width: 200px;
+                        background: var(--b3-theme-surface);
+                        border-right: 1px solid var(--b3-theme-surface-lighter);
+                        padding: 16px 0;
+                        flex-shrink: 0;
+                    ">
+                        <div class="birthday-nav-item birthday-nav-item--active" data-type="upcoming" style="
+                            padding: 8px 16px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            font-size: 14px;
+                            color: var(--b3-theme-on-background);
+                        ">
+                            <svg viewBox="0 0 24 24" width="16" height="16">
+                                <path fill="currentColor" d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/>
+                            </svg>
+                            即将到来
+                        </div>
+                        <div class="birthday-nav-item" data-type="all" style="
+                            padding: 8px 16px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            font-size: 14px;
+                            color: var(--b3-theme-on-background);
+                        ">
+                            <svg viewBox="0 0 24 24" width="16" height="16">
+                                <path fill="currentColor" d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                            </svg>
+                            全部
+                        </div>
+                    </div>
+                    <!-- 右侧内容 -->
+                    <div style="
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                        overflow: hidden;
+                    ">
+                        <!-- 头部添加按钮 -->
+                        <div style="
+                            padding: 16px;
+                            border-bottom: 1px solid var(--b3-theme-surface-lighter);
+                            display: flex;
+                            align-items: center;
+                            flex-shrink: 0;
+                        ">
+                            <button class="birthday-add-btn" style="
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                                padding: 8px 16px;
+                                border: none;
+                                background: var(--b3-theme-primary);
+                                color: white;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-size: 14px;
+                                transition: opacity 0.2s;
+                            ">
+                                <svg viewBox="0 0 24 24" width="16" height="16">
+                                    <path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                </svg>
+                                添加生日
+                            </button>
+                        </div>
+                        <!-- 生日列表区域 -->
+                        <div class="birthday-list" style="
+                            flex: 1;
+                            overflow-y: auto;
+                            padding: 16px;
+                        "></div>
+                    </div>
+                </div>
+            `,
+            width: "800px",
+        });
+
+        const renderBirthdayList = (type: 'upcoming' | 'all') => {
+            const listContainer = dialog.element.querySelector('.birthday-list');
+            if (!listContainer) return;
+
+            const birthdays = Birthday.configs[this.id] || [];
+            const sortedBirthdays = [...birthdays].sort((a, b) => {
+                const daysA = this.calculateDaysUntilBirthday(a.date);
+                const daysB = this.calculateDaysUntilBirthday(b.date);
+                return daysA - daysB;
+            });
+
+            // 根据类型筛选生日
+            const filteredBirthdays = type === 'upcoming' 
+                ? sortedBirthdays.filter(b => this.calculateDaysUntilBirthday(b.date) > 0)
+                : sortedBirthdays;
+
+            listContainer.innerHTML = '';
+            filteredBirthdays.forEach(birthday => {
+                const birthdayItem = document.createElement('div');
+                birthdayItem.style.cssText = `
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 12px;
+                    margin-bottom: 8px;
+                    border-radius: 6px;
+                    background: var(--b3-theme-surface);
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                `;
+
+                const leftContent = document.createElement('div');
+                leftContent.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+                `;
+
+                const name = document.createElement('div');
+                name.style.cssText = `
+                    font-size: 14px;
+                    color: var(--b3-theme-on-background);
+                    font-weight: 500;
+                `;
+                name.textContent = birthday.name;
+
+                const date = document.createElement('div');
+                date.style.cssText = `
+                    font-size: 12px;
+                    color: var(--b3-theme-on-surface-light);
+                `;
+                date.textContent = this.formatDate(birthday.date);
+
+                const days = document.createElement('div');
+                days.style.cssText = `
+                    font-size: 13px;
+                    color: var(--b3-theme-primary);
+                    font-weight: 500;
+                `;
+                const daysUntil = this.calculateDaysUntilBirthday(birthday.date);
+                days.textContent = `${daysUntil}天后`;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.style.cssText = `
+                    border: none;
+                    background: none;
+                    padding: 8px;
+                    cursor: pointer;
+                    color: var(--b3-theme-on-surface-light);
+                    opacity: 0.6;
+                    border-radius: 4px;
+                    transition: all 0.2s;
+                `;
+                deleteBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                        <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+                    </svg>
+                `;
+
+                deleteBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const index = Birthday.configs[this.id].findIndex(b => b.id === birthday.id);
+                    if (index > -1) {
+                        Birthday.configs[this.id].splice(index, 1);
+                        await this.saveConfig();
+                        renderBirthdayList(type);
+                        this.updateBirthdayDisplay(
+                            this.container.querySelector('div:first-child') as HTMLElement,
+                            this.container.querySelector('div:last-child') as HTMLElement
+                        );
+                    }
+                });
+
+                leftContent.appendChild(name);
+                leftContent.appendChild(date);
+                birthdayItem.appendChild(leftContent);
+                birthdayItem.appendChild(days);
+                birthdayItem.appendChild(deleteBtn);
+
+                // 添加悬停效果
+                birthdayItem.addEventListener('mouseover', () => {
+                    birthdayItem.style.transform = 'translateY(-1px)';
+                    birthdayItem.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                    deleteBtn.style.opacity = '1';
+                });
+                birthdayItem.addEventListener('mouseout', () => {
+                    birthdayItem.style.transform = 'none';
+                    birthdayItem.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
+                    deleteBtn.style.opacity = '0.6';
+                });
+
+                listContainer.appendChild(birthdayItem);
+            });
+
+            // 更新导航项的激活状态
+            dialog.element.querySelectorAll('.birthday-nav-item').forEach(item => {
+                item.classList.remove('birthday-nav-item--active');
+                if (item.getAttribute('data-type') === type) {
+                    item.classList.add('birthday-nav-item--active');
+                }
+            });
+        };
+
+        // 添加导航项点击事件
+        dialog.element.querySelectorAll('.birthday-nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const type = item.getAttribute('data-type') as 'upcoming' | 'all';
+                renderBirthdayList(type);
+            });
+        });
+
+        // 添加新生日按钮点击事件
+        const addBtn = dialog.element.querySelector('.birthday-add-btn');
+        if (addBtn) {
+            addBtn.addEventListener('click', () => {
+                this.showAddDialog();
+                // 添加完成后重新渲染列表
+                const currentType = dialog.element.querySelector('.birthday-nav-item--active')?.getAttribute('data-type') as 'upcoming' | 'all';
+                renderBirthdayList(currentType);
+            });
+
+            // 添加按钮悬停效果
+            addBtn.addEventListener('mouseover', () => {
+                (addBtn as HTMLElement).style.opacity = '0.9';
+            });
+            addBtn.addEventListener('mouseout', () => {
+                (addBtn as HTMLElement).style.opacity = '1';
+            });
+        }
+
+        // 添加样式
+        const style = document.createElement('style');
+        style.textContent = `
+            .birthday-nav-item:hover {
+                background: var(--b3-theme-surface-light);
+            }
+            .birthday-nav-item--active {
+                background: var(--b3-theme-primary-lighter) !important;
+                color: var(--b3-theme-primary) !important;
+            }
+        `;
+        dialog.element.appendChild(style);
+
+        // 初始渲染即将到来的生日
+        renderBirthdayList('upcoming');
     }
 } 
