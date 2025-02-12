@@ -1,5 +1,6 @@
 import { Dialog, Menu, showMessage } from "siyuan";
 import { getFile, putFile } from "../../api";
+import { TomatoWindow } from "./tomato-window";
 
 interface TomatoClockConfig {
     showSeconds: boolean;
@@ -138,6 +139,13 @@ export class TomatoClock {
             if (this.isCountingDown) {
                 return;
             }
+            this.showSettingsMenu();
+        });
+
+        // 添加右键菜单事件
+        this.container.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             this.showSettingsMenu();
         });
 
@@ -697,228 +705,6 @@ export class TomatoClock {
 
     private showSettingsDialog() {
         const dialog = new Dialog({
-            title: '番茄钟设置',
-            content: `<div id="tomato-timer-settings" style="display: flex; flex-direction: column; gap: 1rem; padding: 10px;"></div>`,
-            width: '360px',
-            height: '400px',
-        });
-
-        const container = dialog.element.querySelector('#tomato-timer-settings');
-        if (container) {
-            // 创建专注时间选择区域
-            const focusTimeArea = document.createElement('div');
-            focusTimeArea.style.cssText = 'display: flex; flex-direction: column; gap: 0.5rem;';
-            
-            const focusLabel = document.createElement('div');
-            focusLabel.textContent = '专注时长(分钟)';
-            focusLabel.style.cssText = 'color: var(--b3-theme-on-background); font-size: 14px;';
-            
-            const focusButtonsContainer = document.createElement('div');
-            focusButtonsContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 0.5rem;';
-            
-            const focusTimes = [20, 25, 30, 45, 60, 90, 120, 150, 180];
-            
-            focusTimes.forEach(time => {
-                const button = document.createElement('button');
-                button.textContent = time.toString();
-                button.style.cssText = 'padding: 6px 12px; border-radius: 6px; background: var(--b3-theme-surface); color: var(--b3-theme-on-surface); border: 1px solid var(--b3-theme-surface-lighter); cursor: pointer; min-width: 45px;';
-                if (time === this.selectedFocusTime) {
-                    button.style.background = 'var(--b3-theme-primary)';
-                    button.style.color = '#fff';
-                }
-                button.addEventListener('click', () => {
-                    this.selectedFocusTime = time;
-                    focusButtonsContainer.querySelectorAll('button').forEach(btn => {
-                        btn.style.background = 'var(--b3-theme-surface)';
-                        btn.style.color = 'var(--b3-theme-on-surface)';
-                    });
-                    button.style.background = 'var(--b3-theme-primary)';
-                    button.style.color = '#fff';
-                    focusCustomInput.value = '';
-                });
-                focusButtonsContainer.appendChild(button);
-            });
-            
-            // 添加自定义输入框
-            const focusCustomInput = document.createElement('input');
-            focusCustomInput.type = 'number';
-            focusCustomInput.min = '1';
-            focusCustomInput.placeholder = '自定义';
-            focusCustomInput.style.cssText = 'width: 60px; padding: 6px 12px; border-radius: 6px; background: var(--b3-theme-surface); color: var(--b3-theme-on-surface); border: 1px solid var(--b3-theme-surface-lighter); outline: none;';
-            
-            focusCustomInput.addEventListener('input', () => {
-                const value = parseInt(focusCustomInput.value);
-                if (value > 0) {
-                    this.selectedFocusTime = value;
-                    focusButtonsContainer.querySelectorAll('button').forEach(btn => {
-                        btn.style.background = 'var(--b3-theme-surface)';
-                        btn.style.color = 'var(--b3-theme-on-surface)';
-                    });
-                }
-            });
-            
-            focusButtonsContainer.appendChild(focusCustomInput);
-
-            // 创建休息时间选择区域
-            const breakTimeArea = document.createElement('div');
-            breakTimeArea.style.cssText = 'display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;';
-            
-            const breakLabel = document.createElement('div');
-            breakLabel.textContent = '休息时长(分钟)';
-            breakLabel.style.cssText = 'color: var(--b3-theme-on-background); font-size: 14px;';
-            
-            const breakButtonsContainer = document.createElement('div');
-            breakButtonsContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 0.5rem;';
-            
-            const breakTimes = [5, 10, 15];
-            
-            breakTimes.forEach(time => {
-                const button = document.createElement('button');
-                button.textContent = time.toString();
-                button.style.cssText = 'padding: 6px 12px; border-radius: 6px; background: var(--b3-theme-surface); color: var(--b3-theme-on-surface); border: 1px solid var(--b3-theme-surface-lighter); cursor: pointer; min-width: 45px;';
-                if (time === this.selectedBreakTime) {
-                    button.style.background = 'var(--b3-theme-primary)';
-                    button.style.color = '#fff';
-                }
-                button.addEventListener('click', () => {
-                    this.selectedBreakTime = time;
-                    breakButtonsContainer.querySelectorAll('button').forEach(btn => {
-                        btn.style.background = 'var(--b3-theme-surface)';
-                        btn.style.color = 'var(--b3-theme-on-surface)';
-                    });
-                    button.style.background = 'var(--b3-theme-primary)';
-                    button.style.color = '#fff';
-                    breakCustomInput.value = '';
-                });
-                breakButtonsContainer.appendChild(button);
-            });
-
-            // 添加自定义输入框
-            const breakCustomInput = document.createElement('input');
-            breakCustomInput.type = 'number';
-            breakCustomInput.min = '1';
-            breakCustomInput.placeholder = '自定义';
-            breakCustomInput.style.cssText = 'width: 60px; padding: 6px 12px; border-radius: 6px; background: var(--b3-theme-surface); color: var(--b3-theme-on-surface); border: 1px solid var(--b3-theme-surface-lighter); outline: none;';
-            
-            breakCustomInput.addEventListener('input', () => {
-                const value = parseInt(breakCustomInput.value);
-                if (value > 0) {
-                    this.selectedBreakTime = value;
-                    breakButtonsContainer.querySelectorAll('button').forEach(btn => {
-                        btn.style.background = 'var(--b3-theme-surface)';
-                        btn.style.color = 'var(--b3-theme-on-surface)';
-                    });
-                }
-            });
-            
-            breakButtonsContainer.appendChild(breakCustomInput);
-
-            // 创建通知开关
-            const notificationArea = document.createElement('div');
-            notificationArea.style.cssText = 'display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem;';
-            
-            const notificationLabel = document.createElement('span');
-            notificationLabel.textContent = '消息通知';
-            notificationLabel.style.cssText = 'color: var(--b3-theme-on-background); font-size: 14px;';
-            
-            const notificationSwitch = document.createElement('label');
-            notificationSwitch.style.cssText = 'position: relative; display: inline-block; width: 40px; height: 20px;';
-            
-            const notificationSlider = document.createElement('span');
-            notificationSlider.style.cssText = `
-                position: absolute;
-                cursor: pointer;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background-color: ${this.notificationCheckbox.checked ? 'var(--b3-theme-primary)' : '#ccc'};
-                transition: .4s;
-                border-radius: 20px;
-            `;
-            notificationSlider.innerHTML = `
-                <span style="position: absolute; content: ''; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; transform: ${this.notificationCheckbox.checked ? 'translateX(20px)' : 'translateX(0)'};"></span>
-            `;
-            
-            this.notificationCheckbox.addEventListener('change', () => {
-                if (this.notificationCheckbox.checked) {
-                    notificationSlider.style.backgroundColor = 'var(--b3-theme-primary)';
-                    notificationSlider.querySelector('span').style.transform = 'translateX(20px)';
-                } else {
-                    notificationSlider.style.backgroundColor = '#ccc';
-                    notificationSlider.querySelector('span').style.transform = 'translateX(0)';
-                }
-            });
-            
-            notificationSwitch.append(this.notificationCheckbox, notificationSlider);
-            notificationArea.append(notificationLabel, notificationSwitch);
-
-            // 创建按钮区域
-            const buttonArea = document.createElement('div');
-            buttonArea.style.cssText = 'display: flex; justify-content: center; gap: 1rem; margin-top: 1rem;';
-
-            const confirmButton = document.createElement('button');
-            confirmButton.textContent = '确定';
-            confirmButton.style.cssText = 'padding: 8px 16px; border-radius: 4px; background: var(--b3-theme-primary); color: white; border: none; cursor: pointer;';
-
-            const cancelButton = document.createElement('button');
-            cancelButton.textContent = '取消';
-            cancelButton.style.cssText = 'padding: 8px 16px; border-radius: 4px; background: var(--b3-theme-surface); color: var(--b3-theme-on-surface); border: 1px solid var(--b3-theme-surface-lighter); cursor: pointer;';
-
-            buttonArea.append(cancelButton, confirmButton);
-
-            // 绑定按钮事件
-            confirmButton.addEventListener('click', () => {
-                dialog.destroy();
-                // 启动番茄钟
-                this.countdownTime = this.selectedFocusTime * 60;
-                this.totalTime = this.countdownTime;
-                this.isCountingDown = true;
-                this.isPaused = false;
-                this.isSimpleCountdown = false;
-                this.isBreakTime = false;
-
-                // 设置显示格式
-                this.hasHours = false;
-                this.hourGroup.style.display = 'none';
-                this.secondGroup.style.display = 'flex';
-
-                // 隐藏设置按钮和倒计时按钮
-                this.settingsButton.style.display = 'none';
-                this.countdownButton.style.display = 'none';
-
-                // 显示进度条和控制按钮
-                this.progressBar.style.width = '0%';
-                this.progressContainer.style.opacity = '1';
-                this.buttonContainer.style.opacity = '1';
-                this.buttonContainer.style.pointerEvents = 'auto';
-
-                // 更新标题
-                const titleElement = this.container.closest('.dock')?.querySelector('.dock__title');
-                if (titleElement) {
-                    titleElement.textContent = '专注时间';
-                }
-            });
-
-            cancelButton.addEventListener('click', () => {
-                dialog.destroy();
-            });
-
-            // 组装所有元素
-            focusTimeArea.appendChild(focusLabel);
-            focusTimeArea.appendChild(focusButtonsContainer);
-            breakTimeArea.appendChild(breakLabel);
-            breakTimeArea.appendChild(breakButtonsContainer);
-            
-            container.appendChild(focusTimeArea);
-            container.appendChild(breakTimeArea);
-            container.appendChild(notificationArea);
-            container.appendChild(buttonArea);
-        }
-    }
-
-    private showSettingsMenu() {
-        const dialog = new Dialog({
             title: "番茄钟设置",
             content: `
                 <div class="b3-dialog__content" style="display: flex; flex-direction: column; gap: 1.5rem; padding: 20px;">
@@ -1038,12 +824,35 @@ export class TomatoClock {
             // 保存配置
             await this.saveConfig();
 
-            dialog.destroy();
+                dialog.destroy();
         });
 
         // 绑定取消按钮事件
         dialog.element.querySelector('.b3-button--cancel')?.addEventListener('click', () => {
-            dialog.destroy();
+                dialog.destroy();
+            });
+    }
+
+    private showSettingsMenu() {
+        const menu = new Menu("cardOperation");
+        menu.addItem({
+            icon: "iconPopup",
+            label: "弹出窗口",
+            click: () => {
+                const tomatoWindow = TomatoWindow.getInstance();
+                tomatoWindow.createWindow();
+            }
+        });
+        menu.addItem({
+            icon: "iconSettings",
+            label: "设置",
+            click: () => {
+                this.showSettingsDialog();
+            }
+        });
+        menu.open({
+            x: this.container.getBoundingClientRect().left,
+            y: this.container.getBoundingClientRect().top
         });
     }
 

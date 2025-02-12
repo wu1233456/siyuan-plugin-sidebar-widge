@@ -9,14 +9,12 @@ interface BirthdayConfig {
 
 export class Birthday {
     private container: HTMLElement;
-    private id: string;
-    private configPath: string = "/data/storage/siyuan-plugin-sidebar-widget/birthdays-config.json";
-    private static configs: { [key: string]: BirthdayConfig[] } = {};
+    private static configPath: string = "/data/storage/siyuan-plugin-sidebar-widget/birthdays-config.json";
+    private static configs: BirthdayConfig[] = [];
     private static configsLoaded: boolean = false;
 
-    constructor(container: HTMLElement, id?: string) {
+    constructor(container: HTMLElement) {
         this.container = container;
-        this.id = id || `birthday-${Date.now()}`;
         
         this.loadConfig().then(() => {
             this.init();
@@ -27,7 +25,7 @@ export class Birthday {
         if (Birthday.configsLoaded) return;
         
         try {
-            const configs = await getFile(this.configPath);
+            const configs = await getFile(Birthday.configPath);
             if (configs) {
                 Birthday.configs = configs;
             }
@@ -35,7 +33,7 @@ export class Birthday {
             Birthday.configsLoaded = true;
         } catch (e) {
             console.log("加载生日配置失败，使用默认配置");
-            Birthday.configs = {};
+            Birthday.configs = [];
             Birthday.configsLoaded = true;
         }
     }
@@ -46,7 +44,7 @@ export class Birthday {
 
     private async saveConfig() {
         try {
-            await putFile(this.configPath, false, new Blob([JSON.stringify(Birthday.configs)], { type: "application/json" }));
+            await putFile(Birthday.configPath, false, new Blob([JSON.stringify(Birthday.configs)], { type: "application/json" }));
             console.log("保存生日配置成功");
         } catch (e) {
             console.error("保存生日配置失败", e);
@@ -245,7 +243,7 @@ export class Birthday {
         // 最后添加回按钮
         if (addButton) leftSection.appendChild(addButton);
 
-        const birthdays = Birthday.configs[this.id] || [];
+        const birthdays = Birthday.configs;
         if (birthdays.length === 0) {
             nameElement.textContent = '-';
             daysElement.textContent = '0';
@@ -374,11 +372,7 @@ export class Birthday {
                 return;
             }
 
-            if (!Birthday.configs[this.id]) {
-                Birthday.configs[this.id] = [];
-            }
-
-            Birthday.configs[this.id].push({
+            Birthday.configs.push({
                 id: `birthday-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 name,
                 date
@@ -492,7 +486,7 @@ export class Birthday {
             const listContainer = dialog.element.querySelector('.birthday-list');
             if (!listContainer) return;
 
-            const birthdays = Birthday.configs[this.id] || [];
+            const birthdays = Birthday.configs;
             const sortedBirthdays = [...birthdays].sort((a, b) => {
                 const daysA = this.calculateDaysUntilBirthday(a.date);
                 const daysB = this.calculateDaysUntilBirthday(b.date);
@@ -568,9 +562,9 @@ export class Birthday {
 
                 deleteBtn.addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    const index = Birthday.configs[this.id].findIndex(b => b.id === birthday.id);
+                    const index = Birthday.configs.findIndex(b => b.id === birthday.id);
                     if (index > -1) {
-                        Birthday.configs[this.id].splice(index, 1);
+                        Birthday.configs.splice(index, 1);
                         await this.saveConfig();
                         renderBirthdayList(type);
                         this.updateBirthdayDisplay(

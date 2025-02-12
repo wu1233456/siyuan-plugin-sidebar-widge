@@ -7,7 +7,7 @@ import {
     IModel,
 } from "siyuan";
 import "@/index.scss";
-import { TomatoClock } from "./components/tomato-clock/tomata-clock";
+import { TomatoClock } from "./components/tomato-clock/tomato-clock";
 import { MemorialDay } from "./components/MemorialDay/memorial-day";
 import { HabitTracker } from "./components/habit-tracker/habit-tracker";
 import { StickyNote } from "./components/sticky-note/sticky-note";
